@@ -113,12 +113,23 @@ class TradePipeline:
         decision.dumb_mode_agreed = True # Hunter is mocked to Approve/Buy for now
         
         # 6. Position Sizing (Fractional Kelly f*=0.25)
-        # f* = (bp - q) / b
-        # We'll use a simplified baseline version for now
-        # f* = 0.25 * (risk-reward-ratio * prob - loss-prob)
-        kelly_fraction = Decimal("0.25")
-        position_percent = kelly_fraction * Decimal("0.1") # 2.5% simple sample
-        position_value = (seed.current_value * position_percent).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        from app.services.position_sizing import KellyPositionSizer
+        
+        # Use indicator confidence + LLM confidence average? 
+        # Instruction says: "Use the TradeMemo's entry, target, stop_loss, and the indicator service's confidence score."
+        confidence = opportunity.confidence 
+        
+        position_value = KellyPositionSizer.calculate(
+            seed_value=seed.current_value,
+            entry_price=decision.entry_price, # from the authorized decision/memo
+            target_exit=decision.target_exit,
+            stop_loss=decision.stop_loss,
+            confidence=confidence
+        )
+        
+        if position_value <= 0:
+            logger.info("Kelly sizing returned 0 (no edge). Skipping trade.")
+            return None
         
         # Min Order Size Check
         connector = connectors[opportunity.exchange]

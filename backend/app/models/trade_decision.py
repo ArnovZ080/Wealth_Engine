@@ -5,6 +5,7 @@ Stores the genetic 'DNA' of every trade for the Researcher Agent.
 """
 
 import uuid
+from typing import Optional, List
 from datetime import datetime, timezone
 from decimal import Decimal
 from sqlalchemy import (
@@ -62,6 +63,15 @@ class TradeDecision(Base):
     execution_authorized: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     executed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     dumb_mode_agreed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
+    # Position Watcher fields
+    status: Mapped[str] = mapped_column(String(20), default="open", nullable=False)
+    exit_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(20, 8), nullable=True)
+    exit_timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    exit_reason: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    highest_price_since_entry: Mapped[Optional[Decimal]] = mapped_column(Numeric(20, 8), nullable=True)
+    realized_pnl: Mapped[Optional[Decimal]] = mapped_column(Numeric(20, 8), nullable=True)
+    trailing_stop_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     
     # Full trade DNA
     trade_memo: Mapped[dict] = mapped_column(_json_type, nullable=False)

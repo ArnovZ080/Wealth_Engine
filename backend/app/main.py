@@ -65,12 +65,18 @@ async def health_check():
 @app.on_event("startup")
 async def startup_event():
     logger.info(
-        "🌳 %s v%s starting — Phase 3A: Infrastructure & Multi-Tenancy",
+        "🌳 %s v%s starting — Phase 3C: The Watcher, Real Agents & Scheduler",
         settings.app_title,
         settings.app_version,
     )
+    from app.services.scheduler import get_scheduler
+    scheduler = get_scheduler()
+    await scheduler.start()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("🌳 Engine shutting down gracefully.")
+    from app.services.scheduler import get_scheduler
+    scheduler = get_scheduler()
+    await scheduler.stop()
