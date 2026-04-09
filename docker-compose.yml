@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fractal_wealth_db
+    environment:
+      POSTGRES_DB: fractal_wealth
+      POSTGRES_USER: fractal
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_change_me}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fractal -d fractal_wealth"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fractal_wealth_backend
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://fractal:${POSTGRES_PASSWORD:-dev_password_change_me}@db:5432/fractal_wealth"
+      DATABASE_URL_SYNC: "postgresql+psycopg2://fractal:${POSTGRES_PASSWORD:-dev_password_change_me}@db:5432/fractal_wealth"
+      APP_ENV: development
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  pgdata:
