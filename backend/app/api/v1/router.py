@@ -16,6 +16,7 @@ from app.exchanges.routes import router as exchanges_router
 from app.api.v1.orchestrator import router as orchestrator_router
 from app.api.v1.monitor import router as monitor_router
 from app.api.v1.scheduler import router as scheduler_router
+from app.api.v1.funding import router as funding_router
 
 router = APIRouter(prefix="/api/v1")
 
@@ -27,6 +28,7 @@ router.include_router(agents_router, tags=["agents"])
 router.include_router(orchestrator_router, tags=["orchestrator"])
 router.include_router(monitor_router, prefix="/monitor", tags=["monitor"])
 router.include_router(scheduler_router, prefix="/scheduler", tags=["scheduler"])
+router.include_router(funding_router)
 
 # Infrastructure & Multi-Tenancy
 router.include_router(auth_router)

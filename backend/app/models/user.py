@@ -87,10 +87,23 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
     )
 
+    # ── Funding & Banking (Phase 4) ───────────────────────────────────
+    deposit_reference: Mapped[str | None] = mapped_column(
+        String(20),
+        unique=True,
+        nullable=True,
+        comment="Unique EFT reference e.g., WE-ARN0042",
+    )
+    
+    bank_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    bank_account_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    bank_branch_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     # Relationships
     forest_state = relationship("UserForestState", back_populates="user", uselist=False, cascade="all, delete-orphan")
     exchange_credentials = relationship("ExchangeCredential", back_populates="user", cascade="all, delete-orphan")
     trees = relationship("Tree", back_populates="user", cascade="all, delete-orphan")
+    funding_transactions = relationship("FundingTransaction", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<User(email={self.email}, role={self.role})>"
