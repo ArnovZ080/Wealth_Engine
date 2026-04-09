@@ -13,6 +13,7 @@ from app.api.v1.agents import router as agents_router
 from app.auth.routes import router as auth_router
 from app.admin.routes import router as admin_router
 from app.exchanges.routes import router as exchanges_router
+from app.api.v1.orchestrator import router as orchestrator_router
 
 router = APIRouter(prefix="/api/v1")
 
@@ -21,6 +22,7 @@ router.include_router(waterfall_router, tags=["waterfall"])
 router.include_router(heartbeat_router, tags=["heartbeat"])
 router.include_router(seeds_router, tags=["seeds"])
 router.include_router(agents_router, tags=["agents"])
+router.include_router(orchestrator_router, tags=["orchestrator"])
 
 # Infrastructure & Multi-Tenancy
 router.include_router(auth_router)

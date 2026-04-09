@@ -70,11 +70,21 @@ class BaseExchangeConnector(ABC):
         pass
 
     @abstractmethod
+    async def close(self) -> None:
+        """Gracefully close the persistent connection."""
+        pass
+
+    @abstractmethod
     async def get_balance(self, currency: str = "USDT") -> BalanceInfo:
         pass
 
     @abstractmethod
     async def get_ticker(self, symbol: str) -> TickerPrice:
+        pass
+
+    @abstractmethod
+    async def get_ohlcv(self, symbol: str, timeframe: str, limit: int) -> List[List]:
+        """Fetch OHLCV data. Returns list of lists [timestamp, open, high, low, close, volume]"""
         pass
 
     @abstractmethod
@@ -99,4 +109,10 @@ class BaseExchangeConnector(ABC):
 
     @abstractmethod
     async def get_minimum_order_size(self, symbol: str) -> Decimal:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def normalize_symbol(symbol: str) -> str:
+        """Translate canonical format (BTC/USDT, AAPL/USD) to exchange-specific format."""
         pass

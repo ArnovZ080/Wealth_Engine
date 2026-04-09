@@ -61,6 +61,7 @@ class TradeDecision(Base):
     
     execution_authorized: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     executed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    dumb_mode_agreed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     
     # Full trade DNA
     trade_memo: Mapped[dict] = mapped_column(_json_type, nullable=False)
