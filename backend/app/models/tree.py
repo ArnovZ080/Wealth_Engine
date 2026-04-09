@@ -36,9 +36,15 @@ class Tree(Base):
         comment="Human-readable ID like 'tree_001'",
     )
 
-    global_state_id: Mapped[str] = mapped_column(
+    global_state_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("global_state.id"),
+        nullable=True,
+    )
+
+    user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("users.id"),
         nullable=False,
     )
 
@@ -81,6 +87,7 @@ class Tree(Base):
     # Relationships
     seeds = relationship("Seed", back_populates="tree", cascade="all, delete-orphan")
     global_state = relationship("GlobalState", back_populates="tree_records")
+    user = relationship("User", back_populates="trees")
 
     def __repr__(self) -> str:
         return f"<Tree(tree_id={self.tree_id}, status={self.status}, seeds={self.active_seeds_count})>"

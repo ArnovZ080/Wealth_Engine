@@ -48,6 +48,13 @@ class Settings(BaseSettings):
     max_refinement_rounds: int = 3
     alpha_hunter_confidence_threshold: int = 85
 
+    # ── Phase 3A: Auth & Encryption ──────────────────────────────────────
+    jwt_secret_key: str = "placeholder-secret-change-in-prod"
+    master_email: str = "arno@example.com"
+    credential_encryption_key: Optional[str] = None
+    access_token_expire_minutes: int = 60 * 24 # 24 hours
+    refresh_token_expire_days: int = 7
+
     # ── Waterfall Split Ratios ──────────────────────────────────────────
     # These are the canonical 15/20/50/15 splits from the Master Document §1.1
     waterfall_reservoir_pct: Decimal = Decimal("0.15")

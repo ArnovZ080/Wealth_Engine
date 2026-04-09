@@ -1,0 +1,139 @@
+"""
+User and InviteCode ORM Models — Multi-tenancy and Invitational System.
+
+Master: 0% Platform Fee, controls invites.
+Member: 5% Platform Fee, required invite code for registration.
+"""
+
+import uuid
+from datetime import datetime, timezone
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    String,
+    Enum,
+    text,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from app.database import Base
+import enum
+
+class UserRole(str, enum.Enum):
+    MASTER = "master"
+    MEMBER = "member"
+
+class User(Base):
+    """
+    Forest Owner. Every user manages their own isolated Wealth Engine ecosystem.
+    """
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    
+    email: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+    )
+    
+    display_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+    
+    hashed_password: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    
+    role: Mapped[UserRole] = mapped_column(
+        String(20),
+        default=UserRole.MEMBER,
+        nullable=False,
+    )
+    
+    invited_by: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+    
+    platform_fee_rate: Mapped[float] = mapped_column(
+        Numeric(5, 4),
+        default=0.0500,
+        nullable=False,
+        comment="Master can adjust this per-user. 0.05 is 5%.",
+    )
+    
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
+    
+    last_heartbeat: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    # Relationships
+    forest_state = relationship("UserForestState", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    exchange_credentials = relationship("ExchangeCredential", back_populates="user", cascade="all, delete-orphan")
+    trees = relationship("Tree", back_populates="user", cascade="all, delete-orphan")
+
+    def __repr__(self) -> str:
+        return f"<User(email={self.email}, role={self.role})>"
+
+class InviteCode(Base):
+    """
+    One-time use alphanumeric codes for private registration.
+    """
+    __tablename__ = "invite_codes"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    
+    code: Mapped[str] = mapped_column(
+        String(20),
+        unique=True,
+        nullable=False,
+    )
+    
+    created_by: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("users.id"),
+        nullable=False,
+    )
+    
+    claimed_by: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
+    
+    claimed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    def __repr__(self) -> str:
+        return f"<InviteCode(code={self.code}, claimed={self.claimed_by is not None})>"

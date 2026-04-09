@@ -58,14 +58,14 @@ async def health_check():
         "status": "healthy",
         "engine": settings.app_title,
         "version": settings.app_version,
-        "phase": "1 — Shared Root & Waterfall Logic",
+        "phase": "3A — Infrastructure & Multi-Tenancy",
     }
 
 
 @app.on_event("startup")
 async def startup_event():
     logger.info(
-        "🌳 %s v%s starting — Phase 1: Shared Root & Waterfall Logic",
+        "🌳 %s v%s starting — Phase 3A: Infrastructure & Multi-Tenancy",
         settings.app_title,
         settings.app_version,
     )
