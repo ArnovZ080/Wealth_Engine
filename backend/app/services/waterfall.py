@@ -229,6 +229,22 @@ async def execute_waterfall(
         vault_tier3_delta=vault_result.tier3_deposit,
     )
 
+    # ── Route Reinvestment to Seed ──────────────────────────────────────
+    if seed_id and reinvestment_amount > 0:
+        from app.models.seed import Seed
+        seed_stmt = select(Seed).where(Seed.seed_id == seed_id).with_for_update()
+        seed_result = await session.execute(seed_stmt)
+        target_seed = seed_result.scalar_one_or_none()
+        
+        if target_seed:
+            target_seed.current_value += reinvestment_amount
+            logger.info("Reinvested $%s into seed %s (new value: $%s)", 
+                        reinvestment_amount, seed_id, target_seed.current_value)
+        else:
+            logger.warning("Seed %s not found for reinvestment. Funds held in limbo or default routing needed.", seed_id)
+            # Default routing: if seed not found, we could pool it back to Reservoir or Nursery.
+            # For now, we log a warning.
+
     # ── Check nursery threshold (Master Document §9.3) ──────────────────
     # If nursery >= $100, a new seed should be planted.
     # Phase 1: we flag it. Phase 2: the Nursery actually plants seeds.

@@ -5,6 +5,7 @@ Environment variables are loaded from .env files and can be overridden
 by actual environment variables (e.g., in Docker or CI).
 """
 
+from typing import Optional
 from decimal import Decimal
 from functools import lru_cache
 
@@ -37,6 +38,15 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     app_title: str = "Recursive Fractal Wealth Engine"
     app_version: str = "0.1.0"
+
+    # ── AI Agents ───────────────────────────────────────────────────────
+    gemini_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
+    gemini_model: str = "gemini-3.1-pro"
+    anthropic_model: str = "claude-4.6-opus"
+    
+    max_refinement_rounds: int = 3
+    alpha_hunter_confidence_threshold: int = 85
 
     # ── Waterfall Split Ratios ──────────────────────────────────────────
     # These are the canonical 15/20/50/15 splits from the Master Document §1.1

@@ -34,7 +34,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -174,13 +174,14 @@ class GlobalState(Base):
         default=list,
     )
 
-    # Full tree/seed hierarchy — matches Master Document §9.2 exactly:
-    # [{ Tree_ID, Status, Active_Seeds_Count, Preflight_Passed, Seeds: [...] }]
-    trees: Mapped[list | None] = mapped_column(
-        _jsonb_type,
+    total_active_seeds: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
         nullable=False,
-        default=list,
     )
+
+    # ── Relationships ───────────────────────────────────────────────────
+    tree_records = relationship("Tree", back_populates="global_state", cascade="all, delete-orphan")
 
     # ── Timestamps ──────────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
