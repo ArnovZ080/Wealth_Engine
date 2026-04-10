@@ -148,10 +148,58 @@ class CashOutService:
             user_id=user_id,
             type="withdrawal",
             amount_zar=amount_zar,
-            status="pending",
+            status="processing", # Set to processing for auto-payout loop
             reference_code=user.deposit_reference or "N/A",
             notes=f"Liquidation breakdown: {preview['breakdown']}"
         )
         session.add(tx)
         await session.commit()
         return tx
+
+    async def process_pending_withdrawals(self, session: AsyncSession):
+        """
+        Scan for 'processing' withdrawals and execute EFT via Investec.
+        """
+        from app.services.investec_client import InvestecClient
+        investec = InvestecClient()
+        
+        if not investec.is_configured:
+            logger.info("Investec not configured. Skipping automated payouts.")
+            return
+
+        res = await session.execute(
+            select(FundingTransaction).where(
+                FundingTransaction.type == "withdrawal",
+                FundingTransaction.status == "processing"
+            )
+        )
+        pending = res.scalars().all()
+        
+        for txn in pending:
+            user_res = await session.execute(select(User).where(User.id == txn.user_id))
+            user = user_res.scalars().first()
+            if not user or not user.bank_account_number:
+                logger.warning("User %s has no bank details. Skipping payout.", txn.user_id)
+                continue
+            
+            try:
+                logger.info("Executing EFT payout of R%s to %s", txn.amount_zar, user.display_name)
+                result = await investec.make_payment(
+                    beneficiary_name=user.display_name,
+                    beneficiary_account=user.bank_account_number,
+                    beneficiary_bank_code=user.bank_branch_code or "580105",
+                    amount=txn.amount_zar,
+                    reference=f"WE-PAYOUT-{txn.id[:8]}"
+                )
+                
+                txn.status = "completed"
+                txn.completed_at = datetime.now(timezone.utc)
+                txn.notes = (txn.notes or "") + f" | Investec paymentId: {result.get('paymentId', 'N/A')}"
+                
+                logger.info("Payout successful for txn %s", txn.id)
+            except Exception as e:
+                logger.error("Payout failed for txn %s: %s", txn.id, e)
+                txn.status = "failed"
+                txn.notes = (txn.notes or "") + f" | Payout failed: {str(e)}"
+        
+        await session.commit()

@@ -55,6 +55,7 @@ class FundingTransaction(Base):
 
     reference_code: Mapped[str] = mapped_column(String(20), nullable=False) # e.g. WE-ARN0042
     bank_reference: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    bank_transaction_id: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
     
     manual_review_flag: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     

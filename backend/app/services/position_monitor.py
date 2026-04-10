@@ -183,6 +183,21 @@ class PositionMonitor:
             user = decision.seed.tree.user
             await self._settle_trade(decision, decision.entry_price, exit_price, quantity, res.fees, user, db_session)
             
+            # Notify via Telegram
+            try:
+                from app.services.telegram_service import TelegramService
+                telegram = TelegramService()
+                alert = telegram.format_trade_alert(
+                    "SELL", 
+                    decision.ticker, 
+                    float(exit_price), 
+                    pnl=float(decision.realized_pnl or 0),
+                    reason=f"Seed {decision.seed.id[:8]} - Reason: {reason}"
+                )
+                await telegram.notify_user(user, alert)
+            except Exception as te:
+                logger.error("Failed to send trade exit notification: %s", te)
+            
             return res
         except Exception as e:
             logger.error("Failed to execute exit for %s: %s", decision.ticker, e)
@@ -229,7 +244,14 @@ class PositionMonitor:
                 logger.warning("Seed %s hit GROUND ZERO floor. Value: %s", seed.seed_id, seed.current_value)
                 seed.status = "ground_zero"
                 seed.strike_count += 1
-                # Future: triggers reset-request or fleet-level pause
+                
+                # Notify via Telegram
+                try:
+                    from app.services.telegram_service import TelegramService
+                    telegram = TelegramService()
+                    await telegram.notify_user(user, f"⚠️ <b>GROUND ZERO ALERT</b>\nSeed {seed.seed_id} hit stop-loss floor (${seed.current_value:,.2f}).\nStrike Count: {seed.strike_count}\n<i>Genetic pruning recommended.</i>")
+                except Exception as te:
+                    logger.error("Failed to send ground zero notification: %s", te)
         
         # Mark as closed in any case
         # decision.status is already set in _execute_exit

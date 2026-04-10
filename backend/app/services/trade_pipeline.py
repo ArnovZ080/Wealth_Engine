@@ -151,13 +151,26 @@ class TradePipeline:
         logger.info("EXECUTING: Buy %.8f %s on %s", quantity, opportunity.symbol, opportunity.exchange)
         trade_result = await connector.place_order(order)
         
-        # 8. Settlement
+        # 8. Settlement & Notification
         decision.executed = True
-        # Assume instant profit for the waterfall test flow (in reality, settlement happens at EXIT)
-        # But instructions say: "If profitable at close... Settlement: Waterfall"
-        # Since this is ENTRY ONLY, we'll wait for Phase 3C for real EXIT settlement.
-        # But we must ensure the models are updated.
         
+        # Notify via Telegram
+        try:
+            from app.services.telegram_service import TelegramService
+            telegram = TelegramService()
+            user_res = await self.session.execute(select(User).where(User.id == self.user_id))
+            user = user_res.scalars().first()
+            if user:
+                alert = telegram.format_trade_alert(
+                    "BUY", 
+                    opportunity.symbol, 
+                    float(opportunity.current_price), 
+                    reason=f"Seed {seed.id[:8]} - Hunter rationale: {decision.hunter_rationale[:50]}..."
+                )
+                await telegram.notify_user(user, alert)
+        except Exception as te:
+            logger.error("Failed to send trade notification: %s", te)
+
         await self.session.commit()
         return trade_result
 

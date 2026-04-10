@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'; // I'll need to create lib/utils.ts
 const navItems = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Forest', href: '/dashboard/forest', icon: Trees },
+  { name: 'Research', href: '/dashboard/research', icon: Zap },
   { name: 'Trade Log', href: '/dashboard/trades', icon: History },
   { name: 'Funding', href: '/dashboard/funding', icon: Wallet },
 ];
@@ -58,7 +59,7 @@ export default function Sidebar() {
 
         <div className="pt-4 mt-4 border-t border-border">
           <Link
-            href="/dashboard/settings/exchanges"
+            href="/dashboard/settings"
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-medium",
               pathname.includes('/settings') 

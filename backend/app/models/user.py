@@ -99,6 +99,8 @@ class User(Base):
     bank_account_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
     bank_branch_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
+    telegram_chat_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     # Relationships
     forest_state = relationship("UserForestState", back_populates="user", uselist=False, cascade="all, delete-orphan")
     exchange_credentials = relationship("ExchangeCredential", back_populates="user", cascade="all, delete-orphan")

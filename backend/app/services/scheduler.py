@@ -114,25 +114,76 @@ class TradingScheduler:
             # Sleep for 5 minutes
             await asyncio.sleep(5 * 60)
 
+    async def _deposit_scan_loop(self):
+        """
+        Scan for new deposits via Investec API every 30 mins during business hours.
+        """
+        from app.services.deposit_detector import DepositDetector
+        while self.running:
+            try:
+                # Business hours SAST (UTC+2)
+                # For simplicity, we just check local hour if server is in same timezone 
+                # or use a proper timezone check.
+                # Assume 6am-8pm SAST
+                now = datetime.now(timezone.utc)
+                hour_sast = (now.hour + 2) % 24
+                
+                if 6 <= hour_sast <= 20:
+                    logger.info("SCHEDULER: Scanning for Investec deposits...")
+                    async with async_session_factory() as session:
+                        detector = DepositDetector()
+                        new_deps = await detector.scan_for_deposits(session)
+                        if new_deps:
+                            logger.info("SCHEDULER: Detected %d new deposits.", len(new_deps))
+                
+                self._last_run["deposit_scan"] = datetime.now(timezone.utc).isoformat()
+            except Exception as e:
+                logger.error("Error in deposit scan loop: %s", e)
+            
+            await asyncio.sleep(30 * 60)
+
+    async def _research_loop(self):
+        """
+        Run Strategy Researcher analysis weekly (Sunday 2am SAST).
+        """
+        from app.agents.strategy_researcher import StrategyResearcher
+        while self.running:
+            try:
+                now = datetime.now(timezone.utc)
+                hour_sast = (now.hour + 2) % 24
+                # Sunday = 6 in weekday()
+                if now.weekday() == 6 and hour_sast == 2:
+                    logger.info("SCHEDULER: Triggering weekly strategy research...")
+                    async with async_session_factory() as session:
+                        researcher = StrategyResearcher()
+                        await researcher.run_analysis(session)
+                    self._last_run["strategy_research"] = datetime.now(timezone.utc).isoformat()
+            except Exception as e:
+                logger.error("Error in research loop: %s", e)
+            
+            # Check hourly
+            await asyncio.sleep(60 * 60)
+
     async def _heartbeat_check_loop(self):
         """
-        Check all users for heartbeat inactivity daily.
+        Check all users for heartbeat inactivity and process auto-payouts daily.
         """
+        from app.services.cashout_service import CashOutService
         while self.running:
-            logger.info("SCHEDULER: Triggering daily heartbeat checks...")
+            logger.info("SCHEDULER: Triggering daily heartbeat checks and auto-payouts...")
             try:
                 async with async_session_factory() as session:
-                    # Fetch all active users
+                    # 1. Payout Processing
+                    cashout = CashOutService()
+                    await cashout.process_pending_withdrawals(session)
+                    
+                    # 2. Heartbeat checks
                     res = await session.execute(select(User).where(User.is_active == True))
                     users = res.scalars().all()
-                    
                     for user in users:
-                        # In Phase 3A, check_inactivity needs to handle being called for many users.
-                        # For now, we'll iterate. 
-                        # Note: heartbeat.py might need a refactor if it's still using GlobalState.
                         try:
-                            # Simple logic for now: we'll call it for each user if we can 
-                            # or just log it. Real Legacy Protocol trigger is a Phase 5 item.
+                            # In Phase 5, we can actually trigger the Legacy Protocol 
+                            # if inactivity exceeds thresholds.
                             pass
                         except Exception as user_e:
                             logger.error("Error checking heartbeat for user %s: %s", user.id, user_e)

@@ -106,3 +106,21 @@ async def user_heartbeat(user: User = Depends(get_current_user), session: AsyncS
     user.last_heartbeat = datetime.now(timezone.utc)
     await session.commit()
     return {"status": "ok", "last_heartbeat": user.last_heartbeat}
+
+class TelegramLinkSchema(BaseModel):
+    chat_id: str
+
+@router.post("/telegram")
+async def link_telegram(data: TelegramLinkSchema, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    """
+    Link a user to their Telegram chat ID for notifications.
+    """
+    user.telegram_chat_id = data.chat_id
+    await session.commit()
+    
+    # Send a confirmation if possible
+    from app.services.telegram_service import TelegramService
+    telegram = TelegramService()
+    await telegram.send_message(data.chat_id, f"✅ <b>Wealth Engine Linked</b>\nHello {user.display_name}! You will now receive trade alerts here.")
+    
+    return {"status": "linked", "chat_id": data.chat_id}

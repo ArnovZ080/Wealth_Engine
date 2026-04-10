@@ -1,40 +1,102 @@
-version: "3.9"
+version: '3.9'
 
 services:
   db:
     image: postgres:16-alpine
     container_name: fractal_wealth_db
+    restart: always
     environment:
-      POSTGRES_DB: fractal_wealth
-      POSTGRES_USER: fractal
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_change_me}
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${DB_USER:-fractal}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password_change_me}
+      POSTGRES_DB: ${DB_NAME:-fractal_wealth}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/backups:/backups
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fractal -d fractal_wealth"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fractal} -d ${DB_NAME:-fractal_wealth}"]
+      interval: 10s
       timeout: 5s
       retries: 5
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.backend
     container_name: fractal_wealth_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${DB_USER:-fractal}:${DB_PASSWORD:-dev_password_change_me}@db:5432/${DB_NAME:-fractal_wealth}
+      DB_USER: ${DB_USER:-fractal}
+      DB_PASSWORD: ${DB_PASSWORD:-dev_password_change_me}
+      DB_NAME: ${DB_NAME:-fractal_wealth}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY}
+      INVESTEC_CLIENT_ID: ${INVESTEC_CLIENT_ID}
+      INVESTEC_CLIENT_SECRET: ${INVESTEC_CLIENT_SECRET}
+      INVESTEC_ACCOUNT_ID: ${INVESTEC_ACCOUNT_ID}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_MASTER_CHAT_ID: ${TELEGRAM_MASTER_CHAT_ID}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+      APP_ENV: production
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: /api/v1
+    container_name: fractal_wealth_frontend
+    restart: always
     environment:
-      DATABASE_URL: "postgresql+asyncpg://fractal:${POSTGRES_PASSWORD:-dev_password_change_me}@db:5432/fractal_wealth"
-      DATABASE_URL_SYNC: "postgresql+psycopg2://fractal:${POSTGRES_PASSWORD:-dev_password_change_me}@db:5432/fractal_wealth"
-      APP_ENV: development
+      NEXT_PUBLIC_API_URL: /api/v1
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: fractal_wealth_nginx
+    restart: always
     volumes:
-      - ./backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/certs:/etc/nginx/certs:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+
+  # Automated Daily Backups
+  backup:
+    image: postgres:16-alpine
+    container_name: fractal_wealth_backup
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-fractal}
+      POSTGRES_DB: ${DB_NAME:-fractal_wealth}
+      POSTGRES_HOST: db
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password_change_me}
+    volumes:
+      - ./infra/postgres/backups:/backups
+    entrypoint: |
+      /bin/sh -c 'while true; do
+        sleep 86400;
+        PGPASSWORD=$$POSTGRES_PASSWORD pg_dump -h $$POSTGRES_HOST -U $$POSTGRES_USER $$POSTGRES_DB > /backups/backup-$$(date +%Y%m%d-%H%M%S).sql;
+        echo "Daily backup complete.";
+      done'
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
