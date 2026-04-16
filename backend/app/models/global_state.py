@@ -135,7 +135,7 @@ class GlobalState(Base):
         Boolean,
         nullable=False,
         default=False,
-        server_default=text("0"),
+        server_default=text("false"),
     )
 
     # ── Kill Switch & Monitoring ────────────────────────────────────────
@@ -156,7 +156,7 @@ class GlobalState(Base):
         Boolean,
         nullable=False,
         default=False,
-        server_default=text("0"),
+        server_default=text("false"),
     )
 
     # ── Tax Rate ────────────────────────────────────────────────────────
