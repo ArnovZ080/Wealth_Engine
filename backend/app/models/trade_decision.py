@@ -17,13 +17,11 @@ from sqlalchemy import (
     String,
     JSON,
     Text,
+    text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database import Base
+from app.database import Base, _uuid_type, _jsonb_type
 
-# Cross-dialect JSON type
-_json_type = JSON().with_variant(JSONB(), "postgresql")
 
 class TradeDecision(Base):
     """
@@ -32,13 +30,13 @@ class TradeDecision(Base):
     __tablename__ = "trade_decisions"
 
     id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
     
     seed_id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("seeds.id"),
         nullable=False,
     )
@@ -56,13 +54,13 @@ class TradeDecision(Base):
     # Adversarial metadata
     hunter_rationale: Mapped[str] = mapped_column(Text, nullable=False)
     shadow_verdict: Mapped[str] = mapped_column(String(20), nullable=False) # APPROVE | VETO | REFINE
-    shadow_flaws: Mapped[dict] = mapped_column(_json_type, default=list, nullable=False)
+    shadow_flaws: Mapped[dict] = mapped_column(_jsonb_type, default=list, nullable=False)
     
     refinement_rounds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     
-    execution_authorized: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    executed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    dumb_mode_agreed: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    execution_authorized: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"), nullable=False)
+    executed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"), nullable=False)
+    dumb_mode_agreed: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"), nullable=False)
     
     # Position Watcher fields
     status: Mapped[str] = mapped_column(String(20), default="open", nullable=False)
@@ -71,11 +69,11 @@ class TradeDecision(Base):
     exit_reason: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
     highest_price_since_entry: Mapped[Optional[Decimal]] = mapped_column(Numeric(20, 8), nullable=True)
     realized_pnl: Mapped[Optional[Decimal]] = mapped_column(Numeric(20, 8), nullable=True)
-    trailing_stop_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    trailing_stop_active: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"), nullable=False)
     
     # Full trade DNA
-    trade_memo: Mapped[dict] = mapped_column(_json_type, nullable=False)
-    adversarial_log: Mapped[dict] = mapped_column(_json_type, nullable=False)
+    trade_memo: Mapped[dict] = mapped_column(_jsonb_type, nullable=False)
+    adversarial_log: Mapped[dict] = mapped_column(_jsonb_type, nullable=False)
 
     # Relationships
     seed = relationship("Seed", backref="trade_decisions")

@@ -17,13 +17,10 @@ from sqlalchemy import (
     JSON,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database import Base
+from app.database import Base, _uuid_type, _jsonb_type
 import enum
 
-# Cross-dialect JSON type
-_json_type = JSON().with_variant(JSONB(), "postgresql")
 
 
 class SeedStatus(str, enum.Enum):
@@ -41,7 +38,7 @@ class Seed(Base):
     __tablename__ = "seeds"
 
     id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
@@ -54,7 +51,7 @@ class Seed(Base):
     )
 
     tree_id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("trees.id"),
         nullable=False,
     )
@@ -113,6 +110,7 @@ class Seed(Base):
     boost_applied: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
+        server_default=text("false"),
         nullable=False,
     )
 
@@ -128,7 +126,7 @@ class Seed(Base):
     )
 
     performance_metrics: Mapped[dict] = mapped_column(
-        _json_type,
+        _jsonb_type,
         default=dict,
         nullable=False,
     )

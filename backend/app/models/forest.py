@@ -17,7 +17,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database import Base
+from app.database import Base, _uuid_type
 
 class UserForestState(Base):
     """
@@ -27,13 +27,13 @@ class UserForestState(Base):
     __tablename__ = "user_forest_state"
 
     id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
     
     user_id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("users.id"),
         unique=True,
         nullable=False,

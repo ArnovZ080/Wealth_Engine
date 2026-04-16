@@ -4,10 +4,19 @@ SQLAlchemy async engine and session factory.
 Uses asyncpg for production and can be swapped to aiosqlite for tests.
 """
 
+from sqlalchemy import String, JSON
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import get_settings
+
+# ── Cross-dialect column types ──────────────────────────────────────────
+# PostgreSQL uses UUID natively; SQLite falls back to String(36).
+# PostgreSQL uses JSONB for indexed JSON; SQLite falls back to JSON.
+_uuid_type = String(36).with_variant(PG_UUID(as_uuid=True), "postgresql")
+_jsonb_type = JSON().with_variant(JSONB(), "postgresql")
+
 
 settings = get_settings()
 

@@ -33,17 +33,11 @@ from sqlalchemy import (
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, _uuid_type, _jsonb_type
 
 
-# ── Cross-dialect column types ──────────────────────────────────────────
-# PostgreSQL uses UUID natively; SQLite falls back to String(36).
-# PostgreSQL uses JSONB for indexed JSON; SQLite falls back to JSON.
-_uuid_type = String(36).with_variant(PG_UUID(as_uuid=True), "postgresql")
-_jsonb_type = JSON().with_variant(JSONB(), "postgresql")
 
 
 class GlobalState(Base):

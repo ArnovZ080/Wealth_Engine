@@ -16,7 +16,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database import Base
+from app.database import Base, _uuid_type, _jsonb_type
 
 class ExchangeCredential(Base):
     """
@@ -26,13 +26,13 @@ class ExchangeCredential(Base):
     __tablename__ = "exchange_credentials"
 
     id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
     
     user_id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("users.id"),
         nullable=False,
     )
@@ -54,19 +54,21 @@ class ExchangeCredential(Base):
     )
     
     additional_config: Mapped[dict | None] = mapped_column(
-        JSON,
+        _jsonb_type,
         nullable=True,
     )
     
     is_paper_trading: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
+        server_default=text("true"),
         nullable=False,
     )
     
     is_active: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
+        server_default=text("true"),
         nullable=False,
     )
     

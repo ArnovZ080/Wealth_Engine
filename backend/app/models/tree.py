@@ -15,7 +15,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database import Base
+from app.database import Base, _uuid_type
 import enum
 
 
@@ -31,7 +31,7 @@ class Tree(Base):
     __tablename__ = "trees"
 
     id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
@@ -44,13 +44,13 @@ class Tree(Base):
     )
 
     global_state_id: Mapped[str | None] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("global_state.id"),
         nullable=True,
     )
 
     user_id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("users.id"),
         nullable=False,
     )
@@ -77,6 +77,7 @@ class Tree(Base):
     preflight_passed: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
+        server_default=text("false"),
         nullable=False,
     )
 

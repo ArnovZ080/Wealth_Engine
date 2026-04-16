@@ -17,7 +17,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database import Base
+from app.database import Base, _uuid_type
 import enum
 
 class UserRole(str, enum.Enum):
@@ -31,7 +31,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
@@ -59,7 +59,7 @@ class User(Base):
     )
     
     invited_by: Mapped[str | None] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("users.id"),
         nullable=True,
     )
@@ -74,6 +74,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
+        server_default=text("true"),
         nullable=False,
     )
     
@@ -117,7 +118,7 @@ class InviteCode(Base):
     __tablename__ = "invite_codes"
 
     id: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         primary_key=True,
         default=lambda: str(uuid.uuid4()),
     )
@@ -129,13 +130,13 @@ class InviteCode(Base):
     )
     
     created_by: Mapped[str] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("users.id"),
         nullable=False,
     )
     
     claimed_by: Mapped[str | None] = mapped_column(
-        String(36),
+        _uuid_type,
         ForeignKey("users.id"),
         nullable=True,
     )
