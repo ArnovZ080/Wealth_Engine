@@ -35,26 +35,28 @@ class Settings(BaseSettings):
     @property
     def database_url(self) -> str:
         from sqlalchemy.engine import URL
-        return str(URL.create(
+        url = URL.create(
             drivername="postgresql+asyncpg",
             username=self.db_user,
             password=self.db_password,
             host=self.db_host,
             port=self.db_port,
             database=self.db_name
-        ))
+        )
+        return url.render_as_string(hide_password=False)
 
     @property
     def database_url_sync(self) -> str:
         from sqlalchemy.engine import URL
-        return str(URL.create(
+        url = URL.create(
             drivername="postgresql+psycopg2",
             username=self.db_user,
             password=self.db_password,
             host=self.db_host,
             port=self.db_port,
             database=self.db_name
-        ))
+        )
+        return url.render_as_string(hide_password=False)
 
     # ── Application ─────────────────────────────────────────────────────
     app_env: str = "development"
