@@ -17,13 +17,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import Base
 from app.models.global_state import GlobalState  # noqa: F401 — registers model metadata
+from app.config import get_settings
 
 config = context.config
 
-# Override sqlalchemy.url from environment if available
-database_url = os.environ.get("DATABASE_URL_SYNC")
-if database_url:
-    config.set_main_option("sqlalchemy.url", database_url)
+# Use settings to get the correctly constructed sync URL
+settings = get_settings()
+config.set_main_option("sqlalchemy.url", settings.database_url_sync)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

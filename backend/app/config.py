@@ -26,12 +26,35 @@ class Settings(BaseSettings):
     )
 
     # ── PostgreSQL ──────────────────────────────────────────────────────
-    database_url: str = (
-        "postgresql+asyncpg://fractal:dev_password_change_me@localhost:5432/fractal_wealth"
-    )
-    database_url_sync: str = (
-        "postgresql+psycopg2://fractal:dev_password_change_me@localhost:5432/fractal_wealth"
-    )
+    db_host: str = "localhost"
+    db_port: int = 5432
+    db_user: str = "fractal"
+    db_password: str = "DudeGraffiti"
+    db_name: str = "fractal_wealth"
+
+    @property
+    def database_url(self) -> str:
+        from sqlalchemy.engine import URL
+        return str(URL.create(
+            drivername="postgresql+asyncpg",
+            username=self.db_user,
+            password=self.db_password,
+            host=self.db_host,
+            port=self.db_port,
+            database=self.db_name
+        ))
+
+    @property
+    def database_url_sync(self) -> str:
+        from sqlalchemy.engine import URL
+        return str(URL.create(
+            drivername="postgresql+psycopg2",
+            username=self.db_user,
+            password=self.db_password,
+            host=self.db_host,
+            port=self.db_port,
+            database=self.db_name
+        ))
 
     # ── Application ─────────────────────────────────────────────────────
     app_env: str = "development"
