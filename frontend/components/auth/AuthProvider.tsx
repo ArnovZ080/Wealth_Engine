@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);
       
       // Heartbeat on every successful user fetch
-      await api.post('/api/v1/heartbeat').catch(() => {});
+      await api.post('/auth/heartbeat').catch(() => {});
     } catch (error) {
       setUser(null);
     } finally {
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Heartbeat on navigation
   useEffect(() => {
     if (user && pathname !== '/login') {
-      api.post('/api/v1/heartbeat').catch(() => {});
+      api.post('/auth/heartbeat').catch(() => {});
     }
   }, [pathname, user]);
 

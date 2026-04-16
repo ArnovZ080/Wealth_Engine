@@ -30,7 +30,7 @@ export default function LoginPage() {
         });
         // Auto login after register
         const data = await api.post<{ access_token: string }>('/auth/login', {
-          username: email, // Backend uses 'username' for OAuth2 form
+          email, // Backend uses 'email' in the JSON body
           password,
         });
         await login(data.access_token);
@@ -40,7 +40,7 @@ export default function LoginPage() {
         // Usually it's URL encoded, but our apiFetch handles JSON.
         // Let's check the backend auth/routes.py if possible, but standard is username/password.
         const data = await api.post<{ access_token: string }>('/auth/login', {
-          username: email,
+          email,
           password,
         });
         await login(data.access_token);

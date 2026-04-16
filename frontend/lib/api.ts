@@ -37,7 +37,18 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `API Error: ${response.status}`);
+    
+    // Handle cases where 'detail' is an object or array (common in FastAPI validation errors)
+    let errorMessage = `API Error: ${response.status}`;
+    if (errorData.detail) {
+      if (typeof errorData.detail === 'string') {
+        errorMessage = errorData.detail;
+      } else {
+        errorMessage = JSON.stringify(errorData.detail);
+      }
+    }
+    
+    throw new Error(errorMessage);
   }
 
   return response.json() as Promise<T>;
