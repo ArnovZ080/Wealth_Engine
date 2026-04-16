@@ -29,8 +29,8 @@ async def trigger_adversarial_loop(
     if not seed:
         raise HTTPException(status_code=404, detail="Seed not found.")
         
-    hunter = AlphaHunter(api_key=settings.gemini_api_key or "mock", model=settings.gemini_model)
-    shadow = ShadowAgent(api_key=settings.anthropic_api_key or "mock", model=settings.anthropic_model)
+    hunter = AlphaHunter(api_key=settings.gemini_api_key or "mock", model_name=settings.gemini_model)
+    shadow = ShadowAgent(api_key=settings.anthropic_api_key or "mock", model_name=settings.anthropic_model)
     
     decision = await run_adversarial_loop(
         session,

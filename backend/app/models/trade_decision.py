@@ -77,6 +77,9 @@ class TradeDecision(Base):
     trade_memo: Mapped[dict] = mapped_column(_json_type, nullable=False)
     adversarial_log: Mapped[dict] = mapped_column(_json_type, nullable=False)
 
+    # Relationships
+    seed = relationship("Seed", backref="trade_decisions")
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

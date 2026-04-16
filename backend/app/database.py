@@ -46,3 +46,8 @@ async def get_db() -> AsyncSession:
             raise
         finally:
             await session.close()
+
+
+# Backward-compat alias — many files import get_session
+get_session = get_db
+

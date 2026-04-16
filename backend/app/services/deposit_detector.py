@@ -98,7 +98,7 @@ class DepositDetector:
         return new_deposits
 
     async def _match_reference(self, reference: str, session: AsyncSession) -> Optional[User]:
-        """
+        r"""
         Extract WE-[A-Z]{2,3}\d{4} pattern from string.
         """
         if not reference:

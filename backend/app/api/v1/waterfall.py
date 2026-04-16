@@ -19,6 +19,8 @@ from app.schemas import (
 )
 from app.services.state_manager import get_global_state
 from app.services.waterfall import execute_waterfall
+from app.api.deps import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -35,12 +37,14 @@ router = APIRouter()
 )
 async def execute_waterfall_endpoint(
     request: WaterfallRequest,
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
     """Execute the atomic waterfall distribution."""
     try:
         result = await execute_waterfall(
             session=session,
+            user=current_user,
             gross_profit=request.gross_profit,
             fees=request.fees,
             tax_rate=request.tax_rate,
@@ -53,7 +57,7 @@ async def execute_waterfall_endpoint(
                 gross_profit=result.gross_profit,
                 fees=result.fees,
                 tax_reserve=result.tax_reserve,
-                net_profit=result.net_profit,
+                net_profit=result.net_profit_after_tax,
                 reservoir=result.reservoir,
                 nursery=result.nursery,
                 vault_total=result.vault_total,

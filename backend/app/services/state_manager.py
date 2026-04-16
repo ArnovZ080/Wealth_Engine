@@ -15,6 +15,47 @@ from app.models.user import User, UserRole
 
 logger = logging.getLogger(__name__)
 
+
+# ── Backward-compat: Legacy GlobalState query ───────────────────────────
+# heartbeat.py, tree_manager.py, seed_manager.py still reference the
+# single-row GlobalState table.  These services use fields that ONLY
+# exist on GlobalState (legacy_triggered, strike_count, total_active_seeds,
+# legacy_heir_wallet, etc.) and do NOT exist on UserForestState.
+# This wrapper keeps them working without a schema migration.
+# It reads from the actual GlobalState table — no user_id needed.
+
+async def get_global_state(
+    session: AsyncSession,
+    *,
+    for_update: bool = False,
+):
+    """
+    Fetch the single-row legacy GlobalState.
+
+    This is NOT user-scoped — it reads the one-row ``global_state`` table
+    that predates the Phase 3A multi-tenant refactor.  Services that need
+    per-user state should use ``get_user_forest_state()`` instead.
+    """
+    from app.models.global_state import GlobalState
+
+    stmt = select(GlobalState)
+    if for_update:
+        stmt = stmt.with_for_update()
+
+    result = await session.execute(stmt)
+    state = result.scalar_one_or_none()
+
+    if state is None:
+        # Auto-create a default row so the app doesn't crash on first boot
+        state = GlobalState()
+        session.add(state)
+        await session.flush()
+
+    return state
+
+
+# ── Per-User Forest State ───────────────────────────────────────────────
+
 async def get_user_forest_state(
     session: AsyncSession,
     user_id: str,
@@ -62,19 +103,12 @@ async def get_vault_tier2_remaining_capacity(
 ) -> Decimal:
     """
     Calculate remaining Tier 2 ETF capacity.
-    Note: Tier 2 capacity is currently handled by a global config or per-user setting?
-    The instructions mentioned vault_tier2_capacity in global_state but NOT in UserForestState.
-    Re-checking Phase 3A instructions... 
-    Instruction 67 (UserForestState) does NOT include vault_tier2_capacity.
-    Instruction 80 (Seed) inherits user scope.
-    
-    I'll assume a global default for now, or fetch from a config.
     """
     from app.config import get_settings
     settings = get_settings()
     
     current = Decimal(str(state.vault_tier2_etfs))
-    capacity = settings.vault_tier2_capacity # Fallback to settings
+    capacity = settings.default_tier2_capacity
     remaining = capacity - current
 
     return max(Decimal("0"), remaining)
@@ -106,3 +140,4 @@ async def update_balances(
     )
 
     return state
+

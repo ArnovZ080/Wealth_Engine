@@ -58,14 +58,15 @@ class FundingService:
         Return the banking details and unique reference for the user.
         """
         return {
-            "bank_name": "Investec Bank",
-            "account_holder": "Wealth Engine (Pty) Ltd",
-            "account_number": getattr(settings, "INVESTEC_ACCOUNT_NUMBER", "123456789"),
-            "branch_code": getattr(settings, "INVESTEC_BRANCH_CODE", "580105"),
+            "bank_name": "Capitec Business",
+            "account_holder": "Mark One Entertainmennt",
+            "account_number": "1050976088",
+            "branch_code": "470010",
+            "account_type": "Current/Cheque",
             "reference": user.deposit_reference,
             "instructions": (
-                "Use your unique reference code as the payment reference. "
-                "Deposits are typically confirmed within 1-2 business days."
+                "Use your unique reference code exactly as shown. "
+                "Deposits are confirmed manually and typically credited within 24 hours."
             ),
         }
 

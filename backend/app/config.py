@@ -74,6 +74,15 @@ class Settings(BaseSettings):
     heartbeat_warning_days_2: int = 150
     heartbeat_legacy_trigger_days: int = 180
 
+    # ── Convenience Aliases ─────────────────────────────────────────────
+    @property
+    def tax_rate(self) -> Decimal:
+        return self.default_tax_rate
+
+    @property
+    def vault_tier2_capacity(self) -> Decimal:
+        return self.default_tier2_capacity
+
 
 @lru_cache()
 def get_settings() -> Settings:

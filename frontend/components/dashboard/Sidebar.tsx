@@ -91,7 +91,7 @@ export default function Sidebar() {
       <div className="p-4 border-t border-border space-y-4">
         <div className="flex items-center gap-3 px-2 py-2">
           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center font-bold text-xs">
-            {user?.display_name[0].upperCase()}
+            {user?.display_name[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{user?.display_name}</p>

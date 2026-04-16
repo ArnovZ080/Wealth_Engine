@@ -11,7 +11,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Dict, Any, List
 import pandas as pd
-import pandas_ta as ta
+try:
+    import pandas_ta as ta
+except ImportError:
+    import ta
 
 from app.exchanges.base_connector import BaseExchangeConnector
 

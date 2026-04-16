@@ -20,9 +20,19 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
+import enum
 
 # Cross-dialect JSON type
 _json_type = JSON().with_variant(JSONB(), "postgresql")
+
+
+class SeedStatus(str, enum.Enum):
+    ACTIVE = "active"
+    PAUSED = "paused"
+    GROUND_ZERO = "ground_zero"
+    PRUNED = "pruned"
+    CLOSED = "closed"
+
 
 class Seed(Base):
     """

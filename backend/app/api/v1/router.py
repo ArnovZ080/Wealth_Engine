@@ -32,6 +32,7 @@ router.include_router(monitor_router, prefix="/monitor", tags=["monitor"])
 router.include_router(scheduler_router, prefix="/scheduler", tags=["scheduler"])
 router.include_router(funding_router)
 router.include_router(research_router)
+router.include_router(health_router)
 
 # Infrastructure & Multi-Tenancy
 router.include_router(auth_router)

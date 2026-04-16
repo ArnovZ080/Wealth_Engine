@@ -12,7 +12,8 @@ import {
   Sprout, 
   Activity,
   AlertTriangle,
-  Play
+  Play,
+  Zap
 } from 'lucide-react';
 
 export default function DashboardHome() {
