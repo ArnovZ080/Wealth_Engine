@@ -182,7 +182,7 @@ export default function AdminPanel() {
               <div className="flex gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-500">
                  <AlertCircle size={18} className="shrink-0" />
                  <p className="text-[10px] leading-relaxed italic">
-                    By confirming, you verify that ZAR has been received in the Investec account. USDT will be credited to the user's internal allocation at the current Binance market rate.
+                    By confirming, you verify that ZAR has been received in the Capitec Business account. USDT will be credited to the user's internal allocation at the current Binance market rate.
                  </p>
               </div>
 

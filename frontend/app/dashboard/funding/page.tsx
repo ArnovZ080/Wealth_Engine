@@ -102,7 +102,7 @@ export default function FundingPage() {
                     <Building2 size={20} />
                   </div>
                   <div>
-                    <h3 className="font-bold">Investec Bank Details</h3>
+                    <h3 className="font-bold">Capitec Business Bank Details</h3>
                     <p className="text-sm text-muted-foreground">Transfer ZAR to your unique ref for automated allocation.</p>
                   </div>
                </div>
