@@ -4,6 +4,10 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -36,15 +40,16 @@ export async function apiFetch<T>(
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData: unknown = await response.json().catch(() => ({} as unknown));
     
     // Handle cases where 'detail' is an object or array (common in FastAPI validation errors)
     let errorMessage = `API Error: ${response.status}`;
-    if (errorData.detail) {
-      if (typeof errorData.detail === 'string') {
-        errorMessage = errorData.detail;
+    if (isRecord(errorData) && "detail" in errorData) {
+      const detail = (errorData as Record<string, unknown>).detail;
+      if (typeof detail === "string") {
+        errorMessage = detail;
       } else {
-        errorMessage = JSON.stringify(errorData.detail);
+        errorMessage = JSON.stringify(detail);
       }
     }
     
@@ -58,14 +63,14 @@ export const api = {
   get: <T>(endpoint: string, options?: RequestInit) => 
     apiFetch<T>(endpoint, { ...options, method: 'GET' }),
   
-  post: <T>(endpoint: string, body?: any, options?: RequestInit) => 
+  post: <T>(endpoint: string, body?: unknown, options?: RequestInit) => 
     apiFetch<T>(endpoint, { 
       ...options, 
       method: 'POST', 
       body: body ? JSON.stringify(body) : undefined 
     }),
   
-  put: <T>(endpoint: string, body?: any, options?: RequestInit) => 
+  put: <T>(endpoint: string, body?: unknown, options?: RequestInit) => 
     apiFetch<T>(endpoint, { 
       ...options, 
       method: 'PUT', 

@@ -7,12 +7,13 @@ import { formatCurrency, cn } from '@/lib/utils';
 import { 
   ArrowUpRight, 
   ArrowDownRight, 
-  Filter, 
   Download,
   ChevronLeft,
   ChevronRight,
   Search
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function TradesPage() {
   const [trades, setTrades] = useState<TradeDecision[]>([]);
@@ -43,27 +44,31 @@ export default function TradesPage() {
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Decision DNA</h1>
-          <p className="text-muted-foreground">Historical trail of autonomous agent operations.</p>
+          <div className="section-label">Trade Log</div>
+          <h1 className="font-heading text-4xl font-bold tracking-tight">Decision DNA</h1>
+          <p className="mt-3 text-text-secondary">Historical trail of autonomous agent operations.</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border rounded-md text-sm font-medium">
+          <Button variant="outline" className="gap-2">
              <Download size={16} />
              Export CSV
-          </button>
+          </Button>
         </div>
       </header>
 
       {/* Filters Bar */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between bg-card border border-border p-4 rounded-xl">
-        <div className="flex bg-secondary p-1 rounded-lg">
+      <div className="glass rv">
+        <div className="gc p-4 flex flex-col md:flex-row gap-4 justify-between">
+        <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
            {(['all', 'open', 'closed'] as const).map((s) => (
              <button
               key={s}
               onClick={() => setFilterStatus(s)}
               className={cn(
-                "px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all",
-                filterStatus === s ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"
+                "px-4 py-2 rounded-lg text-sm font-semibold capitalize transition-all",
+                filterStatus === s
+                  ? "bg-candle-green/18 text-text-primary shadow-[0_0_22px_rgba(34,197,94,0.18)]"
+                  : "text-text-secondary hover:text-text-primary"
               )}
              >
                {s}
@@ -73,37 +78,39 @@ export default function TradesPage() {
         
         <div className="relative flex-1 max-w-sm">
            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-           <input 
-            type="text" 
-            placeholder="Search ticker (e.g. BTC/USDT)..." 
-            className="w-full pl-10 pr-4 py-2 bg-secondary border border-border rounded-lg outline-none focus:ring-1 focus:ring-primary text-sm"
+           <Input
+             type="text"
+             placeholder="Search ticker (e.g. BTC/USDT)..."
+             className="pl-10"
            />
+        </div>
         </div>
       </div>
 
       {/* Trades Table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="glass rv overflow-hidden">
+        <div className="gc p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-border bg-muted/30">
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Symbol</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Type</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Entry Price</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Exit Price</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">P&L</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Agent Rationale</th>
+              <tr className="border-b border-white/10 bg-white/5">
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-muted">Symbol</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-muted">Type</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-muted">Entry Price</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-muted">Exit Price</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-muted">P&L</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-muted">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-muted">Agent Rationale</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-white/10">
               {filteredTrades.map((trade) => (
-                <tr key={trade.id} className="hover:bg-muted/10 transition-colors">
+                <tr key={trade.id} className="hover:bg-white/3 transition-colors">
                   <td className="px-6 py-4 font-bold">{trade.ticker}</td>
                   <td className="px-6 py-4">
                     <span className={cn(
                       "inline-flex items-center gap-1 font-medium",
-                      trade.direction === 'long' ? "text-emerald-500" : "text-amber-500"
+                      trade.direction === 'long' ? "text-candle-green" : "text-candle-red"
                     )}>
                       {trade.direction === 'long' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                       {trade.direction.toUpperCase()}
@@ -115,30 +122,32 @@ export default function TradesPage() {
                     {trade.realized_pnl ? (
                       <span className={cn(
                         "font-bold font-mono",
-                        trade.realized_pnl >= 0 ? "text-emerald-500" : "text-destructive"
+                        trade.realized_pnl >= 0 ? "text-candle-green" : "text-candle-red"
                       )}>
                         {trade.realized_pnl >= 0 ? '+' : ''}{formatCurrency(trade.realized_pnl)}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground text-sm italic">Floating...</span>
+                      <span className="text-text-muted text-sm italic">Floating...</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
                      <span className={cn(
                         "px-2 py-1 rounded text-[10px] font-bold uppercase",
-                        trade.status === 'open' ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
+                        trade.status === 'open'
+                          ? "bg-candle-green/10 text-candle-green"
+                          : "bg-white/5 text-text-muted border border-white/10"
                      )}>
                        {trade.status}
                      </span>
                   </td>
-                  <td className="px-6 py-4 text-xs text-muted-foreground max-w-xs truncate">
+                  <td className="px-6 py-4 text-xs text-text-secondary max-w-xs truncate">
                     Confidence: {(trade.confidence * 100).toFixed(0)}% — {trade.exit_reason || "Position active"}
                   </td>
                 </tr>
               ))}
               {filteredTrades.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground italic">
+                  <td colSpan={7} className="px-6 py-12 text-center text-text-secondary italic">
                      No decision records found.
                   </td>
                 </tr>
@@ -146,15 +155,16 @@ export default function TradesPage() {
             </tbody>
           </table>
         </div>
+        </div>
       </div>
 
       <div className="flex justify-between items-center text-sm">
-        <p className="text-muted-foreground">Showing {filteredTrades.length} decisions</p>
+        <p className="text-text-secondary">Showing {filteredTrades.length} decisions</p>
         <div className="flex gap-2">
-           <button className="p-2 border border-border rounded-md hover:bg-secondary disabled:opacity-30" disabled>
+           <button className="p-2 border border-white/10 rounded-xl hover:bg-white/5 disabled:opacity-30" disabled>
               <ChevronLeft size={16} />
            </button>
-           <button className="p-2 border border-border rounded-md hover:bg-secondary disabled:opacity-30" disabled>
+           <button className="p-2 border border-white/10 rounded-xl hover:bg-white/5 disabled:opacity-30" disabled>
               <ChevronRight size={16} />
            </button>
         </div>

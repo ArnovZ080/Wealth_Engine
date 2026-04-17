@@ -34,15 +34,16 @@ export default function SettingsProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your notification and profile alerts.</p>
+        <div className="section-label">Settings</div>
+        <h1 className="font-heading text-4xl font-bold tracking-tight">Profile & Alerts</h1>
+        <p className="mt-3 text-text-secondary">Manage your notification and profile alerts.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-white/5 bg-slate-900/50 backdrop-blur-xl">
+        <Card className="rv">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Send className="h-5 w-5 text-blue-400" />
+              <Send className="h-5 w-5 text-candle-green" />
               <CardTitle>Telegram Notifications</CardTitle>
             </div>
             <CardDescription>
@@ -51,37 +52,36 @@ export default function SettingsProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Telegram Chat ID</label>
+              <label className="text-xs uppercase tracking-widest text-text-muted font-semibold">Telegram Chat ID</label>
               <div className="flex gap-2">
                 <Input 
                   placeholder="e.g. 12345678" 
                   value={chatId}
                   onChange={(e) => setChatId(e.target.value)}
-                  className="bg-slate-950/50 border-white/10"
+                  className="flex-1"
                 />
                 <Button 
                   onClick={handleLinkTelegram} 
                   disabled={isLinking || !chatId}
-                  className="bg-blue-600 hover:bg-blue-500 text-white"
                 >
                   {isLinking ? "Linking..." : "Link Bot"}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-text-secondary">
                 Message @RecursiveFractalBot to get your Chat ID.
               </p>
             </div>
 
             {success && (
-              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center gap-3">
-                <ShieldCheck className="h-5 w-5 text-green-400" />
-                <span className="text-sm text-green-400 font-medium">Telegram Linked Successfully!</span>
+              <div className="p-3 rounded-xl bg-candle-green/10 border border-candle-green/20 flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-candle-green" />
+                <span className="text-sm text-candle-green font-medium">Telegram Linked Successfully!</span>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-white/5 bg-slate-900/50 backdrop-blur-xl">
+        <Card className="rv">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-purple-400" />
@@ -90,17 +90,17 @@ export default function SettingsProfilePage() {
             <CardDescription>Configure which events trigger a notification.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-2 rounded hover:bg-white/5 transition-colors">
+            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
               <span className="text-sm">Trade Executions (Buy/Sell)</span>
-              <Badge className="bg-green-500/20 text-green-400 border-none">Active</Badge>
+              <Badge className="bg-candle-green/20 text-candle-green border-none">Active</Badge>
             </div>
-            <div className="flex items-center justify-between p-2 rounded hover:bg-white/5 transition-colors">
+            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
               <span className="text-sm">Ground Zero Warnings</span>
-              <Badge className="bg-red-500/20 text-red-400 border-none">High Priority</Badge>
+              <Badge className="bg-candle-red/20 text-candle-red border-none">High Priority</Badge>
             </div>
-            <div className="flex items-center justify-between p-2 rounded hover:bg-white/5 transition-colors">
+            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
               <span className="text-sm">Weekly Strategy Reports</span>
-              <Badge className="bg-blue-500/20 text-blue-400 border-none">Weekly</Badge>
+              <Badge className="bg-white/10 text-text-secondary border border-white/10">Weekly</Badge>
             </div>
           </CardContent>
         </Card>

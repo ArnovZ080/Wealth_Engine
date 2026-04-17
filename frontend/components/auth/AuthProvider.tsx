@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Heartbeat on every successful user fetch
       await api.post('/auth/heartbeat').catch(() => {});
-    } catch (error) {
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);

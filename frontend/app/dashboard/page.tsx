@@ -3,11 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { api } from '@/lib/api';
-import { UserForestState, FundingTransaction } from '@/lib/types';
+import { UserForestState } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { 
   TrendingUp, 
-  TrendingDown, 
   Wallet, 
   Sprout, 
   Activity,
@@ -15,11 +14,19 @@ import {
   Play,
   Zap
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+type SchedulerStatus = {
+  running?: boolean;
+  last_run?: {
+    trading_cycle?: string;
+  };
+};
 
 export default function DashboardHome() {
   const { user } = useAuth();
   const [forest, setForest] = useState<UserForestState | null>(null);
-  const [schedulerStatus, setSchedulerStatus] = useState<any>(null);
+  const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +34,7 @@ export default function DashboardHome() {
       try {
         const [forestData, schedulerData] = await Promise.all([
           api.get<UserForestState>('/state'),
-          api.get<any>('/scheduler/status')
+          api.get<SchedulerStatus>('/scheduler/status'),
         ]);
         setForest(forestData);
         setSchedulerStatus(schedulerData);
@@ -51,81 +58,131 @@ export default function DashboardHome() {
   if (loading) return <div>Loading Summary...</div>;
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Good morning, {user?.display_name.split(' ')[0]}</h1>
-          <div className="flex items-center gap-3">
-             <p className="text-muted-foreground">Your recursive forest is hydrated and active.</p>
-             {forest?.usd_zar_rate && (
-                <span className="text-xs font-mono bg-muted/50 px-2 py-1 rounded text-muted-foreground border border-border">
-                   USD/ZAR: {forest.usd_zar_rate.toFixed(2)}
-                </span>
-             )}
-          </div>
+    <div className="space-y-10">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="rv">
+          <div className="section-label">Your Forest</div>
+          <h1 className="font-heading text-4xl font-bold tracking-tight">
+            Good morning,{" "}
+            <span className="gradient-text-green">
+              {user?.display_name.split(" ")[0]}
+            </span>
+          </h1>
+          <p className="mt-3 text-text-secondary max-w-2xl">
+            Your autonomous trading engine has been running since last login.
+          </p>
+          {(forest as any)?.usd_zar_rate && (
+            <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-text-secondary">
+              <span className="bdot" />
+              USD/ZAR: {(forest as any).usd_zar_rate.toFixed(2)}
+            </div>
+          )}
         </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90">
+        <div className="rv">
+          <Button className="gap-2">
             <Play size={16} />
             Run Cycle Now
-          </button>
+          </Button>
         </div>
       </header>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="p-6 bg-card border border-border rounded-xl shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground font-medium">Total Portfolio</p>
-            <Wallet className="text-primary" size={20} />
-          </div>
-          <div className="flex flex-col">
-             <p className="text-2xl font-bold text-foreground">{formatCurrency(forest?.portfolio?.total_value_zar || 0, 'ZAR')}</p>
-             <p className="text-sm font-medium text-muted-foreground">{formatCurrency(forest?.portfolio?.total_value_usd || totalPortfolio)}</p>
-          </div>
-          <div className="text-xs flex items-center gap-1 text-emerald-500 font-medium pt-1">
-            <TrendingUp size={12} />
-            +4.2% (7d)
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="glass rv">
+          <div className="gc p-6 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">
+                Total Portfolio
+              </p>
+              <Wallet className="text-text-muted" size={18} />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <p className="font-heading text-2xl font-bold gradient-text-green">
+                {formatCurrency((forest as any)?.portfolio?.total_value_zar ?? totalPortfolio, "ZAR")}
+              </p>
+              <p className="text-xs font-semibold text-text-secondary">
+                {formatCurrency((forest as any)?.portfolio?.total_value_usd ?? totalPortfolio)}
+              </p>
+            </div>
+            <div className="text-xs flex items-center gap-1 text-candle-green font-semibold">
+              <TrendingUp size={12} />
+              +4.2% (7d)
+            </div>
           </div>
         </div>
 
-        <div className="p-6 bg-card border border-border rounded-xl shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground font-medium">Available Reservior</p>
-            <Activity className="text-primary" size={20} />
+        <div className="glass rv">
+          <div className="gc p-6 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">
+                Available Reservoir
+              </p>
+              <Activity className="text-text-muted" size={18} />
+            </div>
+            <p className="font-heading text-2xl font-bold">
+              {formatCurrency(forest?.shared_reservoir_balance || 0)}
+            </p>
+            <p className="text-xs text-text-secondary font-semibold">
+              Next Seed: Ready
+            </p>
           </div>
-          <div className="flex flex-col">
-              <p className="text-2xl font-bold text-foreground">{formatCurrency(forest?.portfolio?.reservoir_zar || 0, 'ZAR')}</p>
-              <p className="text-sm font-medium text-muted-foreground">{formatCurrency(forest?.shared_reservoir_balance || 0)}</p>
-          </div>
-          <p className="text-xs text-muted-foreground font-medium pt-1">Next Seed: Ready</p>
         </div>
 
-        <div className="p-6 bg-card border border-border rounded-xl shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground font-medium">Active Seeds</p>
-            <Sprout className="text-primary" size={20} />
+        <div className="glass rv">
+          <div className="gc p-6 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">
+                Active Seeds
+              </p>
+              <Sprout className="text-text-muted" size={18} />
+            </div>
+            <p className="font-heading text-2xl font-bold">12 / 100</p>
+            <p className="text-xs text-text-secondary font-semibold">
+              Capacity: 12% utilized
+            </p>
           </div>
-          <p className="text-2xl font-bold">12 / 100</p>
-          <p className="text-xs text-muted-foreground font-medium">Capacity: 12% utilized</p>
         </div>
 
-        <div className="p-6 bg-card border border-border rounded-xl shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground font-medium">Engine Status</p>
-            <Zap className={cn("text-primary", schedulerStatus?.running ? "text-emerald-500" : "text-amber-500")} size={20} />
+        <div className={cn("glass rv", schedulerStatus?.running ? "" : "glass-red")}>
+          <div className="gc p-6 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">
+                Engine Status
+              </p>
+              <Zap
+                className={cn(
+                  "text-text-muted",
+                  schedulerStatus?.running ? "text-candle-green" : "text-candle-red"
+                )}
+                size={18}
+              />
+            </div>
+            <p className={cn(
+              "font-heading text-2xl font-bold",
+              schedulerStatus?.running ? "text-candle-green" : "text-candle-red"
+            )}>
+              {schedulerStatus?.running ? "Operational" : "Standby"}
+            </p>
+            <p className="text-xs text-text-secondary font-semibold truncate">
+              Last Cycle:{" "}
+              {schedulerStatus?.last_run?.trading_cycle
+                ? new Date(
+                    schedulerStatus.last_run.trading_cycle
+                  ).toLocaleTimeString()
+                : "Never"}
+            </p>
           </div>
-          <p className="text-large font-bold">{schedulerStatus?.running ? "Operational" : "Standby"}</p>
-          <p className="text-xs text-muted-foreground font-medium truncate">
-            Last Cycle: {schedulerStatus?.last_run?.trading_cycle ? new Date(schedulerStatus.last_run.trading_cycle).toLocaleTimeString() : 'Never'}
-          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Balance Breakdown Chart would go here */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6 min-h-[400px]">
-          <h2 className="text-xl font-bold mb-6">Tiered Distribution</h2>
+        <div className="glass rv lg:col-span-2 min-h-[400px]">
+          <div className="gc p-6">
+          <div className="section-label">Allocation</div>
+          <h2 className="font-heading text-3xl font-bold mb-8">
+            Tiered <span className="text-candle-green">Distribution</span>
+          </h2>
           <div className="space-y-6 mt-12">
              {[
                { label: 'Reservoir (BUIDL)', value: forest?.shared_reservoir_balance || 0, color: 'bg-emerald-500' },
@@ -137,9 +194,9 @@ export default function DashboardHome() {
                <div key={tier.label} className="space-y-2">
                  <div className="flex justify-between text-sm">
                    <span className="font-medium">{tier.label}</span>
-                   <span className="text-muted-foreground">{formatCurrency(tier.value)}</span>
+                   <span className="text-text-secondary">{formatCurrency(tier.value)}</span>
                  </div>
-                 <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                 <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
                    <div 
                     className={cn("h-full", tier.color)} 
                     style={{ width: `${totalPortfolio > 0 ? (tier.value / totalPortfolio * 100) : 0}%` }}
@@ -148,37 +205,42 @@ export default function DashboardHome() {
                </div>
              ))}
           </div>
+          </div>
         </div>
 
         {/* Quick Help / Alerts */}
         <div className="space-y-6">
-          <div className="p-6 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-4">
-            <div className="flex items-center gap-2 text-amber-500 font-bold">
+          <div className="glass-red rv">
+            <div className="gc p-6 space-y-4">
+            <div className="flex items-center gap-2 text-candle-red font-bold">
               <AlertTriangle size={20} />
               <span>Ground Zero Alert</span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-text-secondary leading-relaxed">
               2 seeds are approaching Ground Zero ($85.00 floor). Autonomous liquidation is on standby.
             </p>
-            <button className="text-sm font-bold text-amber-500 hover:underline">
+            <button className="text-sm font-bold text-candle-red hover:underline">
               Review Seeds →
             </button>
+            </div>
           </div>
 
-          <div className="p-6 bg-card border border-border rounded-xl space-y-4">
-            <h3 className="font-bold">Next Milestone</h3>
+          <div className="glass rv">
+            <div className="gc p-6 space-y-4">
+            <h3 className="font-heading text-xl font-semibold">Next Milestone</h3>
             <div className="flex items-center gap-4">
               <div className="flex-1 space-y-1">
-                <p className="text-sm text-muted-foreground">Level 2 Unlock</p>
-                <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
-                   <div className="h-full bg-primary" style={{ width: '65%' }} />
+                <p className="text-sm text-text-secondary">Level 2 Unlock</p>
+                <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                   <div className="h-full bg-candle-green" style={{ width: '65%' }} />
                 </div>
               </div>
               <span className="font-bold">65%</span>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-text-secondary">
               Profit needed for Tier 2 Auto-allocation: $1,420
             </p>
+            </div>
           </div>
         </div>
       </div>

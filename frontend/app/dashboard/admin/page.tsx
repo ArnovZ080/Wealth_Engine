@@ -11,16 +11,35 @@ import {
   ShieldAlert, 
   DollarSign, 
   Zap, 
-  CheckCircle2, 
   AlertCircle
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+type PlatformRevenue = {
+  total_collected?: number;
+};
+
+type AdminUser = {
+  id: string;
+  display_name: string;
+  deposit_reference?: string;
+  role: string;
+  platform_fee_rate: number;
+  is_active: boolean;
+};
+
+type Invite = {
+  id: string;
+  claimed_by?: string | null;
+};
 
 export default function AdminPanel() {
   const { user } = useAuth();
   const router = useRouter();
-  const [revenue, setRevenue] = useState<any>(null);
-  const [users, setUsers] = useState<any[]>([]);
-  const [invites, setInvites] = useState<any[]>([]);
+  const [revenue, setRevenue] = useState<PlatformRevenue | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Manual deposit confirmation form state
@@ -37,9 +56,9 @@ export default function AdminPanel() {
     async function fetchAdminData() {
       try {
         const [revData, usersData, invitesData] = await Promise.all([
-          api.get<any>('/admin/platform-revenue'),
-          api.get<any[]>('/admin/users'),
-          api.get<any[]>('/admin/invites')
+          api.get<PlatformRevenue>('/admin/platform-revenue'),
+          api.get<AdminUser[]>('/admin/users'),
+          api.get<Invite[]>('/admin/invites')
         ]);
         setRevenue(revData);
         setUsers(usersData);
@@ -66,7 +85,7 @@ export default function AdminPanel() {
       alert('Deposit confirmed and balance credited!');
       setDepositAmount('');
       setDepositBankRef('');
-    } catch (err) {
+    } catch {
       alert('Confirmation failed');
     }
   };
@@ -74,9 +93,9 @@ export default function AdminPanel() {
   const handleGenerateInvite = async () => {
     try {
       await api.post('/admin/invites', {});
-      const data = await api.get<any[]>('/admin/invites');
+      const data = await api.get<Invite[]>('/admin/invites');
       setInvites(data);
-    } catch (err) {
+    } catch {
       alert('Failed to generate invite');
     }
   };
@@ -86,68 +105,73 @@ export default function AdminPanel() {
   return (
     <div className="space-y-8">
       <header className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center text-black">
+        <div className="w-12 h-12 bg-candle-red/10 border border-candle-red/25 rounded-full flex items-center justify-center text-candle-red">
           <ShieldAlert size={24} />
         </div>
         <div>
-          <h1 className="text-3xl font-bold">Master Operations</h1>
-          <p className="text-muted-foreground">Global oversight for the Recursive Fractal Wealth Engine.</p>
+          <div className="section-label">Master</div>
+          <h1 className="font-heading text-4xl font-bold tracking-tight">Master Operations</h1>
+          <p className="mt-3 text-text-secondary">Global oversight for the Recursive Fractal Wealth Engine.</p>
         </div>
       </header>
 
       {/* Revenue Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-card border border-border rounded-xl space-y-2">
-          <p className="text-sm text-muted-foreground font-medium">Total Platform Fees</p>
+        <div className="glass rv">
+          <div className="gc p-6 space-y-2">
+          <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">Total Platform Fees</p>
           <div className="flex items-center gap-2">
-             <DollarSign className="text-amber-500" size={24} />
-             <p className="text-3xl font-black">{formatCurrency(revenue?.total_collected || 0)}</p>
+             <DollarSign className="text-candle-green" size={20} />
+             <p className="font-heading text-3xl font-bold gradient-text-green">{formatCurrency(revenue?.total_collected || 0)}</p>
           </div>
-          <p className="text-xs text-emerald-500 font-bold">+12% vs last month</p>
+          <p className="text-xs text-candle-green font-bold">+12% vs last month</p>
+          </div>
         </div>
         
-        <div className="p-6 bg-card border border-border rounded-xl space-y-2">
-           <p className="text-sm text-muted-foreground font-medium">Active Users</p>
+        <div className="glass rv">
+          <div className="gc p-6 space-y-2">
+           <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">Active Users</p>
            <div className="flex items-center gap-2">
-              <Users className="text-primary" size={24} />
-              <p className="text-3xl font-black">{users.length}</p>
+              <Users className="text-text-muted" size={20} />
+              <p className="font-heading text-3xl font-bold">{users.length}</p>
            </div>
-           <p className="text-xs text-muted-foreground">{invites.filter(i => i.claimed_by).length} invited successfully</p>
+           <p className="text-xs text-text-secondary">{invites.filter(i => i.claimed_by).length} invited successfully</p>
+          </div>
         </div>
 
-        <div className="p-6 bg-card border border-border rounded-xl space-y-2">
-           <p className="text-sm text-muted-foreground font-medium">Available Invites</p>
+        <div className="glass rv">
+          <div className="gc p-6 space-y-2">
+           <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">Available Invites</p>
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                  <Ticket className="text-blue-500" size={24} />
-                  <p className="text-3xl font-black">{invites.filter(i => !i.claimed_by).length}</p>
+                  <Ticket className="text-candle-green" size={20} />
+                  <p className="font-heading text-3xl font-bold">{invites.filter(i => !i.claimed_by).length}</p>
               </div>
-              <button 
-                onClick={handleGenerateInvite}
-                className="px-3 py-1 bg-blue-500 text-black text-xs font-bold rounded hover:opacity-90"
-              >
+              <Button onClick={handleGenerateInvite} size="sm">
                 Generate +
-              </button>
+              </Button>
            </div>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Manual Deposit Confirmation */}
-        <div className="bg-card border border-border rounded-xl p-6 space-y-6 shadow-xl shadow-amber-500/5">
+        <div className="glass rv">
+          <div className="gc p-6 space-y-6">
            <h2 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
-              <Zap className="text-amber-500" size={20} />
+              <Zap className="text-candle-green" size={20} />
               Confirm External P2P Deposit
            </h2>
            
            <form onSubmit={handleConfirmDeposit} className="space-y-4">
-              <div className="space-y-4 p-4 bg-secondary/50 rounded-lg">
+              <div className="space-y-4 p-4 bg-white/5 border border-white/10 rounded-xl">
                  <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select User</label>
+                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Select User</label>
                     <select 
                       value={depositUserId} 
                       onChange={(e) => setDepositUserId(e.target.value)}
-                      className="w-full mt-1 p-2 bg-background border border-border rounded-md outline-none text-sm"
+                      className="w-full mt-2 p-3 bg-white/5 border border-white/12 rounded-xl outline-none text-sm"
                     >
                        <option value="">Select a user...</option>
                        {users.map(u => (
@@ -157,64 +181,63 @@ export default function AdminPanel() {
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Amount (ZAR)</label>
-                        <input 
+                        <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Amount (ZAR)</label>
+                        <Input
                           type="number" 
                           value={depositAmount}
                           onChange={(e) => setDepositAmount(e.target.value)}
-                          className="w-full mt-1 p-2 bg-background border border-border rounded-md outline-none text-sm"
+                          className="mt-2"
                           placeholder="0.00"
                         />
                     </div>
                     <div>
-                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Bank Ref (Optional)</label>
-                        <input 
+                        <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Bank Ref (Optional)</label>
+                        <Input
                           type="text" 
                           value={depositBankRef}
                           onChange={(e) => setDepositBankRef(e.target.value)}
-                          className="w-full mt-1 p-2 bg-background border border-border rounded-md outline-none text-sm"
+                          className="mt-2"
                           placeholder="ABC-123..."
                         />
                     </div>
                  </div>
               </div>
 
-              <div className="flex gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-500">
-                 <AlertCircle size={18} className="shrink-0" />
+              <div className="flex gap-3 p-3 bg-candle-red/5 border border-candle-red/20 rounded-xl text-candle-red">
+                 <AlertCircle size={18} className="shrink-0 text-candle-red" />
                  <p className="text-[10px] leading-relaxed italic">
-                    By confirming, you verify that ZAR has been received in the Capitec Business account. USDT will be credited to the user's internal allocation at the current Binance market rate.
+                    By confirming, you verify that ZAR has been received in the Capitec Business account. USDT will be credited to the user&apos;s internal allocation at the current Binance market rate.
                  </p>
               </div>
 
-              <button 
-                type="submit"
-                className="w-full py-3 bg-amber-500 text-black font-black uppercase tracking-widest rounded-md hover:opacity-90 transition-opacity"
-              >
+              <Button type="submit" className="w-full">
                 Confirm Receipt & Credit USDT
-              </button>
+              </Button>
            </form>
+          </div>
         </div>
 
         {/* User Management */}
-        <div className="bg-card border border-border rounded-xl p-6">
-           <h2 className="text-xl font-bold mb-6">User Registry</h2>
+        <div className="glass rv">
+          <div className="gc p-6">
+           <h2 className="font-heading text-3xl font-bold mb-6">User Registry</h2>
            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
               {users.map(u => (
-                <div key={u.id} className="flex items-center justify-between p-3 border-b border-border last:border-0">
+                <div key={u.id} className="flex items-center justify-between p-3 border-b border-white/10 last:border-0">
                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center font-bold text-xs uppercase">
+                      <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-bold text-xs uppercase">
                         {u.display_name[0]}
                       </div>
                       <div>
                          <p className="text-sm font-bold">{u.display_name}</p>
-                         <p className="text-[10px] text-muted-foreground uppercase">{u.role} • Fee: {u.platform_fee_rate * 100}%</p>
+                         <p className="text-[10px] text-text-muted uppercase tracking-widest">{u.role} • Fee: {u.platform_fee_rate * 100}%</p>
                       </div>
                    </div>
                    <div className="text-right">
                       <p className="text-xs font-bold">{u.deposit_reference || 'NO REF'}</p>
                       <span className={cn(
                         "text-[10px] px-1.5 py-0.5 rounded font-bold uppercase",
-                        u.is_active ? "bg-emerald-500/10 text-emerald-500" : "bg-destructive/10 text-destructive"
+                        u.is_active ? "bg-candle-green/10 text-candle-green" : "bg-candle-red/10 text-candle-red"
                       )}>
                         {u.is_active ? 'Online' : 'Restricted'}
                       </span>
@@ -222,6 +245,7 @@ export default function AdminPanel() {
                 </div>
               ))}
            </div>
+          </div>
         </div>
       </div>
     </div>
