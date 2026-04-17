@@ -27,8 +27,8 @@ export default function FundingPage() {
     async function fetchData() {
       try {
         const [instData, txData] = await Promise.all([
-          api.get<any>('/api/v1/funding/deposit-instructions'),
-          api.get<FundingTransaction[]>('/api/v1/funding/transactions')
+          api.get<any>('/funding/deposit-instructions'),
+          api.get<FundingTransaction[]>('/funding/transactions')
         ]);
         setInstructions(instData);
         setTransactions(txData);
@@ -44,7 +44,7 @@ export default function FundingPage() {
   const handlePreview = async () => {
     if (!withdrawAmount || isNaN(Number(withdrawAmount))) return;
     try {
-      const data = await api.post<any>('/api/v1/funding/withdraw/preview', {
+      const data = await api.post<any>('/funding/withdraw/preview', {
         amount_zar: Number(withdrawAmount)
       });
       setPreview(data);
@@ -57,14 +57,14 @@ export default function FundingPage() {
     if (!withdrawAmount) return;
     setExecuting(true);
     try {
-      await api.post('/api/v1/funding/withdraw/execute', {
+      await api.post('/funding/withdraw/execute', {
         amount_zar: Number(withdrawAmount)
       });
       alert('Withdrawal request submitted!');
       setWithdrawAmount('');
       setPreview(null);
       // Refresh history
-      const txData = await api.get<FundingTransaction[]>('/api/v1/funding/transactions');
+      const txData = await api.get<FundingTransaction[]>('/funding/transactions');
       setTransactions(txData);
     } catch (err) {
       alert('Execution failed');

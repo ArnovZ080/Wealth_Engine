@@ -21,7 +21,7 @@ export default function ResearchPage() {
   const fetchReport = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/research/report`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/research/report`);
       if (res.ok) {
         const data = await res.json();
         setReport(data);

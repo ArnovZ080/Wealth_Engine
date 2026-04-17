@@ -58,7 +58,7 @@ export default function AdminPanel() {
     if (!depositUserId || !depositAmount) return;
     
     try {
-      await api.post('/api/v1/funding/deposits/confirm', {
+      await api.post('/funding/deposits/confirm', {
         user_id: depositUserId,
         amount_zar: Number(depositAmount),
         bank_reference: depositBankRef

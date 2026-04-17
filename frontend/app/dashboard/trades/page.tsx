@@ -22,7 +22,7 @@ export default function TradesPage() {
   useEffect(() => {
     async function fetchTrades() {
       try {
-        const data = await api.get<TradeDecision[]>('/api/v1/trades/history');
+        const data = await api.get<TradeDecision[]>('/trades/history');
         setTrades(data);
       } catch (err) {
         console.error('Failed to fetch trades', err);

@@ -26,8 +26,8 @@ export default function SeedDetailPage() {
     async function fetchData() {
       try {
         const [treeData, seedsData] = await Promise.all([
-          api.get<Tree>(`/api/v1/forest/trees/${treeId}`),
-          api.get<Seed[]>(`/api/v1/forest/trees/${treeId}/seeds`)
+          api.get<Tree>(`/trees/${treeId}`),
+          api.get<Seed[]>(`/trees/${treeId}/seeds`)
         ]);
         setTree(treeData);
         setSeeds(seedsData);

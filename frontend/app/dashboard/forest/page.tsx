@@ -14,7 +14,7 @@ export default function ForestPage() {
   useEffect(() => {
     async function fetchTrees() {
       try {
-        const data = await api.get<Tree[]>('/api/v1/forest/trees');
+        const data = await api.get<Tree[]>('/trees');
         setTrees(data);
       } catch (err) {
         console.error('Failed to fetch trees', err);

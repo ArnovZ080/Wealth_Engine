@@ -26,8 +26,8 @@ export default function DashboardHome() {
     async function fetchData() {
       try {
         const [forestData, schedulerData] = await Promise.all([
-          api.get<UserForestState>('/api/v1/forest/state'),
-          api.get<any>('/api/v1/scheduler/status')
+          api.get<UserForestState>('/state'),
+          api.get<any>('/scheduler/status')
         ]);
         setForest(forestData);
         setSchedulerStatus(schedulerData);
