@@ -135,7 +135,9 @@ export default function FundingPage() {
                      <p className="text-xs text-text-muted font-semibold uppercase tracking-widest">Account Number</p>
                      <p className="font-bold font-mono">{instructions?.account_number}</p>
                      <button 
-                      onClick={() => copyToClipboard(instructions?.account_number)}
+                      onClick={() => {
+                        if (instructions?.account_number) copyToClipboard(instructions.account_number);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted-foreground/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                      >
                         <Copy size={16} />
@@ -145,7 +147,9 @@ export default function FundingPage() {
                      <p className="text-xs text-white/70 font-bold uppercase tracking-widest">MANDATORY REFERENCE</p>
                      <p className="text-xl font-black font-mono mt-1">{instructions?.reference}</p>
                      <button 
-                      onClick={() => copyToClipboard(instructions?.reference)}
+                      onClick={() => {
+                        if (instructions?.reference) copyToClipboard(instructions.reference);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-black/10 rounded"
                      >
                         <Copy size={18} />
