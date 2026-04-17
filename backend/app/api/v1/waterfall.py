@@ -21,6 +21,8 @@ from app.services.state_manager import get_global_state
 from app.services.waterfall import execute_waterfall
 from app.api.deps import get_current_user
 from app.models.user import User
+from app.models.tree import Tree
+from sqlalchemy import select
 
 router = APIRouter()
 
@@ -116,6 +118,18 @@ async def get_state_endpoint(
         resp.usd_zar_rate = rate
         from app.schemas import DualCurrencyPortfolio
         resp.portfolio = DualCurrencyPortfolio(**portfolio)
+        
+        trees_res = await session.execute(select(Tree))
+        db_trees = trees_res.scalars().all()
+        resp.trees = [
+            {
+                "id": t.id,
+                "tree_id": t.tree_id,
+                "status": t.status,
+                "active_seeds_count": t.active_seeds_count
+            }
+            for t in db_trees
+        ]
         
         return resp
     except ValueError as e:

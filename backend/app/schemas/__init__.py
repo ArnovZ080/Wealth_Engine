@@ -129,8 +129,8 @@ class GlobalStateResponse(BaseModel):
     legacy_heir_wallet: Optional[str]
     legacy_trust_contract: Optional[str]
     legacy_triggered: bool
-    boost_log: list
-    trees: list
+    boost_log: list = []
+    trees: list = []
     created_at: datetime
     updated_at: datetime
     
