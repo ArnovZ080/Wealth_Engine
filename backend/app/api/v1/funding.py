@@ -44,9 +44,9 @@ async def get_transactions(
         {
             "id": tx.id,
             "type": tx.type,
-            "amount_zar": float(tx.amount_zar),
-            "exchange_rate": float(tx.exchange_rate) if tx.exchange_rate else None,
-            "exchange_amount": float(tx.exchange_amount) if tx.exchange_amount else None,
+            "zar_amount": float(tx.zar_amount),
+            "fx_rate_used": float(tx.fx_rate_used) if tx.fx_rate_used else None,
+            "usd_amount": float(tx.usd_amount) if tx.usd_amount else None,
             "status": tx.status,
             "created_at": tx.created_at.isoformat(),
             "completed_at": tx.completed_at.isoformat() if tx.completed_at else None,
@@ -58,7 +58,7 @@ async def get_transactions(
 @router.post("/deposits/confirm", response_model=Dict[str, Any])
 async def confirm_deposit(
     user_id: str,
-    amount_zar: Decimal,
+    zar_amount: Decimal,
     bank_reference: str = None,
     master_user: User = Depends(get_master_user),
     session: AsyncSession = Depends(get_db)
@@ -68,14 +68,14 @@ async def confirm_deposit(
     """
     service = FundingService()
     try:
-        tx = await service.confirm_deposit(session, user_id, amount_zar, bank_reference)
-        return {"success": True, "transaction_id": tx.id, "amount_usdt": float(tx.exchange_amount)}
+        tx = await service.confirm_deposit(session, user_id, zar_amount, bank_reference)
+        return {"success": True, "transaction_id": tx.id, "amount_usdt": float(tx.usd_amount)}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/withdraw/preview", response_model=Dict[str, Any])
 async def preview_withdrawal(
-    amount_zar: Decimal,
+    zar_amount: Decimal,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db)
 ):
@@ -83,11 +83,11 @@ async def preview_withdrawal(
     Preview the hierarchical liquidation for a withdrawal request.
     """
     service = CashOutService()
-    return await service.preview_withdrawal(session, current_user.id, amount_zar)
+    return await service.preview_withdrawal(session, current_user.id, zar_amount)
 
 @router.post("/withdraw/execute", response_model=Dict[str, Any])
 async def execute_withdrawal(
-    amount_zar: Decimal,
+    zar_amount: Decimal,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db)
 ):
@@ -96,7 +96,7 @@ async def execute_withdrawal(
     """
     service = CashOutService()
     try:
-        tx = await service.execute_withdrawal(session, current_user.id, amount_zar)
+        tx = await service.execute_withdrawal(session, current_user.id, zar_amount)
         return {"success": True, "transaction_id": tx.id, "status": tx.status}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

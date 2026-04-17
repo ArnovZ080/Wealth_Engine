@@ -55,7 +55,14 @@ export default function DashboardHome() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Good morning, {user?.display_name.split(' ')[0]}</h1>
-          <p className="text-muted-foreground">Your recursive forest is hydrated and active.</p>
+          <div className="flex items-center gap-3">
+             <p className="text-muted-foreground">Your recursive forest is hydrated and active.</p>
+             {forest?.usd_zar_rate && (
+                <span className="text-xs font-mono bg-muted/50 px-2 py-1 rounded text-muted-foreground border border-border">
+                   USD/ZAR: {forest.usd_zar_rate.toFixed(2)}
+                </span>
+             )}
+          </div>
         </div>
         <div className="flex gap-2">
           <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90">
@@ -72,8 +79,11 @@ export default function DashboardHome() {
             <p className="text-sm text-muted-foreground font-medium">Total Portfolio</p>
             <Wallet className="text-primary" size={20} />
           </div>
-          <p className="text-2xl font-bold">{formatCurrency(totalPortfolio)}</p>
-          <div className="text-xs flex items-center gap-1 text-emerald-500 font-medium">
+          <div className="flex flex-col">
+             <p className="text-2xl font-bold text-foreground">{formatCurrency(forest?.portfolio?.total_value_zar || 0, 'ZAR')}</p>
+             <p className="text-sm font-medium text-muted-foreground">{formatCurrency(forest?.portfolio?.total_value_usd || totalPortfolio)}</p>
+          </div>
+          <div className="text-xs flex items-center gap-1 text-emerald-500 font-medium pt-1">
             <TrendingUp size={12} />
             +4.2% (7d)
           </div>
@@ -84,8 +94,11 @@ export default function DashboardHome() {
             <p className="text-sm text-muted-foreground font-medium">Available Reservior</p>
             <Activity className="text-primary" size={20} />
           </div>
-          <p className="text-2xl font-bold">{formatCurrency(forest?.shared_reservoir_balance || 0)}</p>
-          <p className="text-xs text-muted-foreground font-medium">Next Seed: Ready</p>
+          <div className="flex flex-col">
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(forest?.portfolio?.reservoir_zar || 0, 'ZAR')}</p>
+              <p className="text-sm font-medium text-muted-foreground">{formatCurrency(forest?.shared_reservoir_balance || 0)}</p>
+          </div>
+          <p className="text-xs text-muted-foreground font-medium pt-1">Next Seed: Ready</p>
         </div>
 
         <div className="p-6 bg-card border border-border rounded-xl shadow-sm space-y-2">

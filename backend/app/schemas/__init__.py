@@ -101,6 +101,16 @@ class BoostLogEntry(BaseModel):
     timestamp: datetime
 
 
+class DualCurrencyPortfolio(BaseModel):
+    """Dual currency breakdown of internal funds."""
+    total_value_usd: Decimal
+    total_value_zar: Decimal
+    reservoir_zar: Decimal
+    nursery_zar: Decimal
+    vault_zar: Decimal
+    reinvestment_zar: Decimal
+
+
 class GlobalStateResponse(BaseModel):
     """Full global state snapshot for API consumers."""
 
@@ -123,6 +133,10 @@ class GlobalStateResponse(BaseModel):
     trees: list
     created_at: datetime
     updated_at: datetime
+    
+    # --- Phase 5 Dual Currency fields ---
+    usd_zar_rate: Optional[Decimal] = None
+    portfolio: Optional[DualCurrencyPortfolio] = None
 
     class Config:
         from_attributes = True

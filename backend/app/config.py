@@ -90,9 +90,12 @@ class Settings(BaseSettings):
     # ── Defaults ────────────────────────────────────────────────────────
     default_tax_rate: Decimal = Decimal("0.30")
     default_tier2_capacity: Decimal = Decimal("50000.00000000")
-    default_seed_value: Decimal = Decimal("100.00000000")
-    default_stop_loss_floor: Decimal = Decimal("85.00000000")
-    nursery_seed_threshold: Decimal = Decimal("100.00000000")
+    default_seed_value: Decimal = Decimal("1000.00000000")
+    default_stop_loss_floor: Decimal = Decimal("850.00000000")
+    nursery_seed_threshold: Decimal = Decimal("1000.00000000")
+
+    base_currency: str = "ZAR"
+    display_currency: str = "USD"
 
     # ── Heartbeat / Legacy Protocol ─────────────────────────────────────
     heartbeat_warning_days_1: int = 90

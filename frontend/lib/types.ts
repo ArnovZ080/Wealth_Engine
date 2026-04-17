@@ -24,6 +24,15 @@ export interface UserForestState {
   vault_tier3_realestate: number;
   kill_switch_status: 'active' | 'paused' | 'global_pause';
   total_platform_fees_paid: number;
+  usd_zar_rate?: number;
+  portfolio?: {
+    total_value_usd: number;
+    total_value_zar: number;
+    reservoir_zar: number;
+    nursery_zar: number;
+    vault_zar: number;
+    reinvestment_zar: number;
+  };
 }
 
 export interface Tree {
@@ -64,9 +73,9 @@ export interface TradeDecision {
 export interface FundingTransaction {
   id: string;
   type: 'deposit' | 'withdrawal';
-  amount_zar: number;
-  exchange_rate?: number;
-  exchange_amount?: number;
+  zar_amount: number;
+  fx_rate_used?: number;
+  usd_amount?: number;
   status: 'pending' | 'confirmed' | 'credited' | 'liquidating' | 'processing' | 'completed' | 'failed';
   reference_code: string;
   created_at: string;

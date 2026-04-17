@@ -65,13 +65,14 @@ class FundingService:
             "account_type": "Current/Cheque",
             "reference": user.deposit_reference,
             "instructions": (
+                "Minimum deposit is ZAR1,000 (1 Base Seed). "
                 "Use your unique reference code exactly as shown. "
                 "Deposits are confirmed manually and typically credited within 24 hours."
             ),
         }
 
     async def confirm_deposit(
-        self, session: AsyncSession, user_id: str, amount_zar: Decimal, bank_ref: Optional[str] = None
+        self, session: AsyncSession, user_id: str, zar_amount: Decimal, bank_ref: Optional[str] = None
     ) -> FundingTransaction:
         """
         Master manually confirms a deposit has been received.
@@ -85,10 +86,13 @@ class FundingService:
         if not user:
             raise ValueError(f"User {user_id} not found.")
 
+        if zar_amount < Decimal("1000.00"):
+            raise ValueError("Minimum deposit is ZAR1,000.")
+
         # 1. Fetch real-time rate
-        exchange_rate = Decimal("19.00") # Default fallback
+        fx_rate_used = Decimal("19.00") # Default fallback
         manual_review = False
-        exchange_amount = Decimal("0")
+        usd_amount = Decimal("0")
         
         try:
             # Note: CCXT Binance might not have a direct USDT/ZAR orderbook for all methods.
@@ -97,26 +101,22 @@ class FundingService:
             connector = ConnectorFactory.get_connector("binance", "master_keys_mock") # we use any key to check public ticker
             ticker = await connector.get_ticker("USDT/ZAR")
             if ticker and "last" in ticker:
-                exchange_rate = Decimal(str(ticker["last"]))
-            else:
-                logger.warning("Could not fetch real-time USDT/ZAR. Falling back to default.")
-                manual_review = True
+                fx_rate_used = Decimal(str(ticker["last"]))
         except Exception as e:
-            logger.error("Error fetching conversion rate: %s", e)
-            exchange_rate = getattr(settings, "DEFAULT_ZAR_USD_RATE", Decimal("19.0"))
-            manual_review = True
+            logger.warning("Failed to fetch real-time USDT/ZAR rate, using fallback. %s", e)
+            manual_review = True # Flag so master knows it used fallback
 
-        # 2. Calculate USDT
+        # 2. Calculate Internal Allocation
         # ZAR / Rate = USDT (e.g. 1900 ZAR / 19.0 = 100 USDT)
-        exchange_amount = (amount_zar / exchange_rate).quantize(Decimal("1.00000000"))
+        usd_amount = (zar_amount / fx_rate_used).quantize(Decimal("1.00000000"))
 
         # 3. Create Transaction record
         tx = FundingTransaction(
             user_id=user_id,
             type="deposit",
-            amount_zar=amount_zar,
-            exchange_rate=exchange_rate,
-            exchange_amount=exchange_amount,
+            zar_amount=zar_amount,
+            fx_rate_used=fx_rate_used,
+            usd_amount=usd_amount,
             status="credited",
             reference_code=user.deposit_reference,
             bank_reference=bank_ref,
@@ -135,8 +135,8 @@ class FundingService:
         forest_res = await session.execute(select(UserForestState).where(UserForestState.user_id == user_id))
         forest = forest_res.scalars().first()
         if forest:
-            forest.shared_reservoir_balance += exchange_amount
-            logger.info("Credited %s USDT to user %s reservoir.", exchange_amount, user_id)
+            forest.shared_reservoir_balance += usd_amount
+            logger.info("Credited %s USDT to user %s reservoir.", usd_amount, user_id)
         
         await session.commit()
         return tx

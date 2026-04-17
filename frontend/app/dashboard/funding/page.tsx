@@ -45,7 +45,7 @@ export default function FundingPage() {
     if (!withdrawAmount || isNaN(Number(withdrawAmount))) return;
     try {
       const data = await api.post<any>('/funding/withdraw/preview', {
-        amount_zar: Number(withdrawAmount)
+        zar_amount: Number(withdrawAmount)
       });
       setPreview(data);
     } catch (err) {
@@ -58,7 +58,7 @@ export default function FundingPage() {
     setExecuting(true);
     try {
       await api.post('/funding/withdraw/execute', {
-        amount_zar: Number(withdrawAmount)
+        zar_amount: Number(withdrawAmount)
       });
       alert('Withdrawal request submitted!');
       setWithdrawAmount('');
@@ -162,7 +162,7 @@ export default function FundingPage() {
                        </div>
                     </div>
                     <div className="text-right">
-                       <p className="font-bold">{formatCurrency(tx.amount_zar, 'ZAR')}</p>
+                       <p className="font-bold">{formatCurrency(tx.zar_amount, 'ZAR')}</p>
                        <div className="flex items-center justify-end gap-1 text-[10px]">
                           {tx.status === 'completed' || tx.status === 'credited' ? (
                             <span className="flex items-center gap-0.5 text-emerald-500">

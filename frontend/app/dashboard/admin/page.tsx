@@ -60,7 +60,7 @@ export default function AdminPanel() {
     try {
       await api.post('/funding/deposits/confirm', {
         user_id: depositUserId,
-        amount_zar: Number(depositAmount),
+        zar_amount: Number(depositAmount),
         bank_reference: depositBankRef
       });
       alert('Deposit confirmed and balance credited!');

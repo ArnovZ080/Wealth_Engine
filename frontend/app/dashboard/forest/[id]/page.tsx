@@ -25,12 +25,16 @@ export default function SeedDetailPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [treeData, seedsData] = await Promise.all([
+        const [treeData, seedsData, stateData] = await Promise.all([
           api.get<Tree>(`/trees/${treeId}`),
-          api.get<Seed[]>(`/trees/${treeId}/seeds`)
+          api.get<Seed[]>(`/trees/${treeId}/seeds`),
+          api.get<any>('/state')
         ]);
         setTree(treeData);
         setSeeds(seedsData);
+        if (stateData?.usd_zar_rate) {
+           (window as any).usd_zar_rate = stateData.usd_zar_rate;
+        }
       } catch (err) {
         console.error('Failed to fetch seed details', err);
       } finally {
@@ -91,21 +95,26 @@ export default function SeedDetailPage() {
             <div className="p-6 space-y-4">
                <div>
                   <p className="text-xs text-muted-foreground font-bold uppercase">Current Exposure</p>
-                  <p className="text-2xl font-black font-mono">{formatCurrency(seed.current_value)}</p>
+                  <div className="flex flex-col">
+                     <p className="text-2xl font-black font-mono text-foreground">{formatCurrency(seed.current_value, 'ZAR')}</p>
+                     <p className="text-xs font-medium text-muted-foreground">
+                        ~{formatCurrency(seed.current_value / ((window as any).usd_zar_rate || 18.50))}
+                     </p>
+                  </div>
                </div>
 
                <div className="space-y-2">
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground uppercase font-bold">Floor (GZ)</span>
-                    <span className="font-bold">$85.00</span>
+                    <span className="font-bold tracking-tight">R850 / <span className="text-muted-foreground font-normal">~{formatCurrency(850 / ((window as any).usd_zar_rate || 18.50))}</span></span>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
                      <div 
                       className={cn(
                         "h-full transition-all duration-500",
-                        seed.current_value < 90 ? "bg-destructive" : "bg-emerald-500"
+                        seed.current_value < 900 ? "bg-destructive" : "bg-emerald-500"
                       )} 
-                      style={{ width: `${Math.max(0, Math.min(100, ((seed.current_value - 85) / 15) * 100))}%` }} 
+                      style={{ width: `${Math.max(0, Math.min(100, ((seed.current_value - 850) / 150) * 100))}%` }} 
                      />
                   </div>
                </div>

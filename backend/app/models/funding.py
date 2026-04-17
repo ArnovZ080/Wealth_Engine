@@ -39,13 +39,13 @@ class FundingTransaction(Base):
 
     type: Mapped[str] = mapped_column(String(20), nullable=False) # deposit | withdrawal
     
-    amount_zar: Mapped[Decimal] = mapped_column(Numeric(20, 2), nullable=False)
+    zar_amount: Mapped[Decimal] = mapped_column(Numeric(20, 2), nullable=False)
     
     # Real-time exchange rate at confirmation
-    exchange_rate: Mapped[Decimal | None] = mapped_column(Numeric(20, 8), nullable=True)
+    fx_rate_used: Mapped[Decimal | None] = mapped_column(Numeric(20, 8), nullable=True)
     
     # Credited USDT amount for internal allocation
-    exchange_amount: Mapped[Decimal | None] = mapped_column(Numeric(20, 8), nullable=True)
+    usd_amount: Mapped[Decimal | None] = mapped_column(Numeric(20, 8), nullable=True)
     
     status: Mapped[str] = mapped_column(
         String(20), 
@@ -82,4 +82,4 @@ class FundingTransaction(Base):
     user = relationship("User", back_populates="funding_transactions")
 
     def __repr__(self) -> str:
-        return f"<FundingTransaction(user={self.user_id}, type={self.type}, state={self.status}, zar={self.amount_zar})>"
+        return f"<FundingTransaction(user={self.user_id}, type={self.type}, state={self.status}, zar={self.zar_amount}, usd={self.usd_amount})>"

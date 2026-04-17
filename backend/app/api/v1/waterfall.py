@@ -89,8 +89,34 @@ async def get_state_endpoint(
     session: AsyncSession = Depends(get_db),
 ):
     """Retrieve the current global state."""
+    from app.services.forex_service import ForexService
     try:
         state = await get_global_state(session)
-        return GlobalStateResponse.model_validate(state)
+        
+        # Dual currency calculations
+        rate = await ForexService.get_usd_to_zar()
+        total_usd = (
+            state.shared_reservoir_balance + 
+            state.shared_nursery_balance + 
+            state.vault_tier1_buidl + 
+            state.vault_tier2_etfs + 
+            state.vault_tier3_real_estate
+        )
+        
+        portfolio = {
+            "total_value_usd": total_usd,
+            "total_value_zar": (total_usd * rate).quantize(Decimal("1.00")),
+            "reservoir_zar": (state.shared_reservoir_balance * rate).quantize(Decimal("1.00")),
+            "nursery_zar": (state.shared_nursery_balance * rate).quantize(Decimal("1.00")),
+            "vault_zar": ((state.vault_tier1_buidl + state.vault_tier2_etfs + state.vault_tier3_real_estate) * rate).quantize(Decimal("1.00")),
+            "reinvestment_zar": Decimal("0.00") # Derived dynamically across trees usually, stubbed for now
+        }
+        
+        resp = GlobalStateResponse.model_validate(state)
+        resp.usd_zar_rate = rate
+        from app.schemas import DualCurrencyPortfolio
+        resp.portfolio = DualCurrencyPortfolio(**portfolio)
+        
+        return resp
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

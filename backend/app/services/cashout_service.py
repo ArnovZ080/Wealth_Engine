@@ -23,7 +23,7 @@ class CashOutService:
     Handles hierarchical liquidation of assets for user withdrawals.
     """
 
-    async def preview_withdrawal(self, session: AsyncSession, user_id: str, amount_zar: Decimal) -> Dict[str, Any]:
+    async def preview_withdrawal(self, session: AsyncSession, user_id: str, zar_amount: Decimal) -> Dict[str, Any]:
         """
         Calculate which tiers will be drawn and how much from each, WITHOUT executing.
         Assumes ZAR/USDT conversion for calculations.
@@ -38,7 +38,7 @@ class CashOutService:
         # But balances are in USDT. So we convert requested ZAR to USDT first.
         # MVP: use 19.0 for preview calculations.
         rate = Decimal("19.0")
-        requested_usdt = amount_zar / rate
+        requested_usdt = zar_amount / rate
         
         remaining = requested_usdt
         breakdown = []
@@ -50,7 +50,7 @@ class CashOutService:
             breakdown.append({
                 "source": "Reservoir (BUIDL)",
                 "amount_usdt": draw,
-                "amount_zar_approx": draw * rate,
+                "zar_amount_approx": draw * rate,
                 "settlement": "Instant"
             })
             remaining -= draw
@@ -62,7 +62,7 @@ class CashOutService:
             breakdown.append({
                 "source": "Nursery (USDC)",
                 "amount_usdt": draw,
-                "amount_zar_approx": draw * rate,
+                "zar_amount_approx": draw * rate,
                 "settlement": "Instant"
             })
             remaining -= draw
@@ -74,7 +74,7 @@ class CashOutService:
             breakdown.append({
                 "source": "Vault Tier 2 (ETFs)",
                 "amount_usdt": draw,
-                "amount_zar_approx": draw * rate,
+                "zar_amount_approx": draw * rate,
                 "settlement": "1-2 business days"
             })
             remaining -= draw
@@ -86,7 +86,7 @@ class CashOutService:
             breakdown.append({
                 "source": "Vault Tier 3 (Real Estate)",
                 "amount_usdt": draw,
-                "amount_zar_approx": draw * rate,
+                "zar_amount_approx": draw * rate,
                 "settlement": "3-10 business days"
             })
             remaining -= draw
@@ -96,24 +96,24 @@ class CashOutService:
             breakdown.append({
                 "source": "Active Seeds (LAST RESORT)",
                 "amount_usdt": remaining,
-                "amount_zar_approx": remaining * rate,
+                "zar_amount_approx": remaining * rate,
                 "settlement": "Immediate - closes live positions",
                 "warning": True
             })
 
         return {
-            "requested_zar": amount_zar,
+            "requested_zar": zar_amount,
             "target_usdt": requested_usdt,
             "fulfillable_usdt": requested_usdt - remaining,
             "shortfall_usdt": remaining,
             "breakdown": breakdown
         }
 
-    async def execute_withdrawal(self, session: AsyncSession, user_id: str, amount_zar: Decimal) -> FundingTransaction:
+    async def execute_withdrawal(self, session: AsyncSession, user_id: str, zar_amount: Decimal) -> FundingTransaction:
         """
         Execute hierarchical liquidation and create a pending FundingTransaction.
         """
-        preview = await self.preview_withdrawal(session, user_id, amount_zar)
+        preview = await self.preview_withdrawal(session, user_id, zar_amount)
         
         # Fetch forest and lock for update
         res = await session.execute(
@@ -147,7 +147,7 @@ class CashOutService:
         tx = FundingTransaction(
             user_id=user_id,
             type="withdrawal",
-            amount_zar=amount_zar,
+            zar_amount=zar_amount,
             status="processing", # Set to processing for auto-payout loop
             reference_code=user.deposit_reference or "N/A",
             notes=f"Liquidation breakdown: {preview['breakdown']}"
@@ -183,12 +183,12 @@ class CashOutService:
                 continue
             
             try:
-                logger.info("Executing EFT payout of R%s to %s", txn.amount_zar, user.display_name)
+                logger.info("Executing EFT payout of R%s to %s", txn.zar_amount, user.display_name)
                 result = await investec.make_payment(
                     beneficiary_name=user.display_name,
                     beneficiary_account=user.bank_account_number,
                     beneficiary_bank_code=user.bank_branch_code or "580105",
-                    amount=txn.amount_zar,
+                    amount=txn.zar_amount,
                     reference=f"WE-PAYOUT-{txn.id[:8]}"
                 )
                 
