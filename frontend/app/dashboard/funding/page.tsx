@@ -19,9 +19,12 @@ import { useAuth } from '@/components/auth/AuthProvider';
 
 type DepositInstructions = {
   bank_name?: string;
-  branch_code?: string;
+  account_holder?: string;
   account_number?: string;
+  branch_code?: string;
+  account_type?: string;
   reference?: string;
+  instructions?: string;
 };
 
 type WithdrawalPreview = {
@@ -51,6 +54,7 @@ export default function FundingPage() {
           api.get<DepositInstructions>('/funding/deposit-instructions'),
           api.get<FundingTransaction[]>('/funding/transactions'),
         ]);
+        console.log('Deposit Instructions fetched:', instData);
         setInstructions(instData);
         setTransactions(txData);
       } catch (err) {
@@ -149,10 +153,18 @@ export default function FundingPage() {
                   </div>
                </div>
 
-               <div className="grid grid-cols-2 gap-4 text-sm mt-4">
+                <div className="grid grid-cols-2 gap-4 text-sm mt-4">
                   <div className="p-3 bg-white/5 border border-white/10 rounded-xl">
                      <p className="text-xs text-text-muted font-semibold uppercase tracking-widest">Bank Name</p>
                      <p className="font-bold">{instructions?.bank_name}</p>
+                  </div>
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl">
+                     <p className="text-xs text-text-muted font-semibold uppercase tracking-widest">Account Holder</p>
+                     <p className="font-bold">{instructions?.account_holder}</p>
+                  </div>
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl">
+                     <p className="text-xs text-text-muted font-semibold uppercase tracking-widest">Account Type</p>
+                     <p className="font-bold">{instructions?.account_type}</p>
                   </div>
                   <div className="p-3 bg-white/5 border border-white/10 rounded-xl">
                      <p className="text-xs text-text-muted font-semibold uppercase tracking-widest">Branch Code</p>
@@ -186,7 +198,7 @@ export default function FundingPage() {
             </div>
 
             <p className="text-xs text-text-secondary italic leading-relaxed">
-              * Payments without the correct reference will be flagged for manual review and may take up to 5 business days to credit.
+              {instructions?.instructions || '* Payments without the correct reference will be flagged for manual review and may take up to 5 business days to credit.'}
             </p>
             </div>
           </div>

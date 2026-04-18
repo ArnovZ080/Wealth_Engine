@@ -7,11 +7,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 from typing import List, Dict, Any
 
+from pydantic import BaseModel
 from app.database import get_db
 from app.api.deps import get_current_user, get_master_user
 from app.models.user import User
 from app.services.funding_service import FundingService
 from app.services.cashout_service import CashOutService
+
+class WithdrawalRequest(BaseModel):
+    zar_amount: Decimal
 
 router = APIRouter(prefix="/funding", tags=["funding"])
 
@@ -75,7 +79,7 @@ async def confirm_deposit(
 
 @router.post("/withdraw/preview", response_model=Dict[str, Any])
 async def preview_withdrawal(
-    zar_amount: Decimal,
+    data: WithdrawalRequest,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db)
 ):
@@ -83,11 +87,11 @@ async def preview_withdrawal(
     Preview the hierarchical liquidation for a withdrawal request.
     """
     service = CashOutService()
-    return await service.preview_withdrawal(session, current_user.id, zar_amount)
+    return await service.preview_withdrawal(session, current_user.id, data.zar_amount)
 
 @router.post("/withdraw/execute", response_model=Dict[str, Any])
 async def execute_withdrawal(
-    zar_amount: Decimal,
+    data: WithdrawalRequest,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db)
 ):
@@ -96,7 +100,7 @@ async def execute_withdrawal(
     """
     service = CashOutService()
     try:
-        tx = await service.execute_withdrawal(session, current_user.id, zar_amount)
+        tx = await service.execute_withdrawal(session, current_user.id, data.zar_amount)
         return {"success": True, "transaction_id": tx.id, "status": tx.status}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
