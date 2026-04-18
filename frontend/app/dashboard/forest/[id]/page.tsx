@@ -22,18 +22,22 @@ export default function SeedDetailPage() {
   const [seeds, setSeeds] = useState<Seed[]>([]);
   const [loading, setLoading] = useState(true);
 
+  type ForestStateRate = {
+    usd_zar_rate?: number;
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
         const [treeData, seedsData, stateData] = await Promise.all([
           api.get<Tree>(`/trees/${treeId}`),
           api.get<Seed[]>(`/trees/${treeId}/seeds`),
-          api.get<any>('/state')
+          api.get<ForestStateRate>('/state'),
         ]);
         setTree(treeData);
         setSeeds(seedsData);
         if (stateData?.usd_zar_rate) {
-           (window as any).usd_zar_rate = stateData.usd_zar_rate;
+           (window as unknown as { usd_zar_rate?: number }).usd_zar_rate = stateData.usd_zar_rate;
         }
       } catch (err) {
         console.error('Failed to fetch seed details', err);
@@ -122,7 +126,7 @@ export default function SeedDetailPage() {
                     <p className="text-xs font-medium text-text-secondary">
                       ~
                       {formatCurrency(
-                        seed.current_value / ((window as any).usd_zar_rate || 18.5)
+                        seed.current_value / ((window as unknown as { usd_zar_rate?: number }).usd_zar_rate || 18.5)
                       )}
                     </p>
                   </div>
@@ -135,7 +139,7 @@ export default function SeedDetailPage() {
                       R850{" "}
                       <span className="text-text-muted font-semibold">
                         / ~
-                        {formatCurrency(850 / ((window as any).usd_zar_rate || 18.5))}
+                        {formatCurrency(850 / ((window as unknown as { usd_zar_rate?: number }).usd_zar_rate || 18.5))}
                       </span>
                     </span>
                   </div>

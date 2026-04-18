@@ -23,9 +23,19 @@ type SchedulerStatus = {
   };
 };
 
+type ForestPortfolio = {
+  total_value_zar?: number;
+  total_value_usd?: number;
+};
+
+type ForestStateWithPortfolio = UserForestState & {
+  usd_zar_rate?: number;
+  portfolio?: ForestPortfolio;
+};
+
 export default function DashboardHome() {
   const { user } = useAuth();
-  const [forest, setForest] = useState<UserForestState | null>(null);
+  const [forest, setForest] = useState<ForestStateWithPortfolio | null>(null);
   const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +43,7 @@ export default function DashboardHome() {
     async function fetchData() {
       try {
         const [forestData, schedulerData] = await Promise.all([
-          api.get<UserForestState>('/state'),
+          api.get<ForestStateWithPortfolio>('/state'),
           api.get<SchedulerStatus>('/scheduler/status'),
         ]);
         setForest(forestData);
@@ -71,10 +81,10 @@ export default function DashboardHome() {
           <p className="mt-3 text-text-secondary max-w-2xl">
             Your autonomous trading engine has been running since last login.
           </p>
-          {(forest as any)?.usd_zar_rate && (
+          {forest?.usd_zar_rate && (
             <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-text-secondary">
               <span className="bdot" />
-              USD/ZAR: {(forest as any).usd_zar_rate.toFixed(2)}
+              USD/ZAR: {forest.usd_zar_rate.toFixed(2)}
             </div>
           )}
         </div>
@@ -98,10 +108,10 @@ export default function DashboardHome() {
             </div>
             <div className="flex flex-col gap-0.5">
               <p className="font-heading text-2xl font-bold gradient-text-green">
-                {formatCurrency((forest as any)?.portfolio?.total_value_zar ?? totalPortfolio, "ZAR")}
+                {formatCurrency(forest?.portfolio?.total_value_zar ?? totalPortfolio, "ZAR")}
               </p>
               <p className="text-xs font-semibold text-text-secondary">
-                {formatCurrency((forest as any)?.portfolio?.total_value_usd ?? totalPortfolio)}
+                {formatCurrency(forest?.portfolio?.total_value_usd ?? totalPortfolio)}
               </p>
             </div>
             <div className="text-xs flex items-center gap-1 text-candle-green font-semibold">
