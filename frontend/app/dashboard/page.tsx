@@ -84,7 +84,7 @@ export default function DashboardHome() {
           {forest?.usd_zar_rate && (
             <div className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-text-secondary">
               <span className="bdot" />
-              USD/ZAR: {forest.usd_zar_rate.toFixed(2)}
+              USD/ZAR: {Number(forest.usd_zar_rate).toFixed(2)}
             </div>
           )}
         </div>

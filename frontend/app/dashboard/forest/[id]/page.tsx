@@ -126,7 +126,7 @@ export default function SeedDetailPage() {
                     <p className="text-xs font-medium text-text-secondary">
                       ~
                       {formatCurrency(
-                        seed.current_value / ((window as unknown as { usd_zar_rate?: number }).usd_zar_rate || 18.5)
+                        seed.current_value / (Number((window as unknown as { usd_zar_rate?: number }).usd_zar_rate) || 18.5)
                       )}
                     </p>
                   </div>
@@ -139,7 +139,7 @@ export default function SeedDetailPage() {
                       R850{" "}
                       <span className="text-text-muted font-semibold">
                         / ~
-                        {formatCurrency(850 / ((window as unknown as { usd_zar_rate?: number }).usd_zar_rate || 18.5))}
+                        {formatCurrency(850 / (Number((window as unknown as { usd_zar_rate?: number }).usd_zar_rate) || 18.5))}
                       </span>
                     </span>
                   </div>
