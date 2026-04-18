@@ -9,8 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
-
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 # ── Request Schemas ─────────────────────────────────────────────────────
 
@@ -115,6 +114,12 @@ class GlobalStateResponse(BaseModel):
     """Full global state snapshot for API consumers."""
 
     id: str
+    
+    @field_validator('id', mode='before')
+    @classmethod
+    def convert_uuid(cls, v):
+        return str(v)
+        
     shared_reservoir_balance: Decimal
     shared_nursery_balance: Decimal
     vault_tier1_buidl: Decimal
@@ -138,8 +143,7 @@ class GlobalStateResponse(BaseModel):
     usd_zar_rate: Optional[Decimal] = None
     portfolio: Optional[DualCurrencyPortfolio] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class HeartbeatResponse(BaseModel):
