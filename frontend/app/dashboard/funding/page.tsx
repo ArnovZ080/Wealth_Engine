@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 type DepositInstructions = {
   bank_name?: string;
@@ -35,6 +36,13 @@ export default function FundingPage() {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [preview, setPreview] = useState<WithdrawalPreview | null>(null);
   const [executing, setExecuting] = useState(false);
+  const { user, refreshUser } = useAuth();
+  
+  const [bankName, setBankName] = useState(user?.bank_name || '');
+  const [bankAccount, setBankAccount] = useState(user?.bank_account_number || '');
+  const [bankBranch, setBankBranch] = useState(user?.bank_branch_code || '');
+  const [isEditingBank, setIsEditingBank] = useState(false);
+  const [updatingBank, setUpdatingBank] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -89,6 +97,25 @@ export default function FundingPage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     alert('Copied: ' + text);
+  };
+
+  const handleUpdateBanking = async () => {
+    setUpdatingBank(true);
+    try {
+      await api.patch('/auth/me/banking', {
+        bank_name: bankName,
+        bank_account_number: bankAccount,
+        bank_branch_code: bankBranch,
+      });
+      await refreshUser();
+      setIsEditingBank(false);
+      alert('Banking details updated successfully!');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update banking details');
+    } finally {
+      setUpdatingBank(false);
+    }
   };
 
   if (loading) return <div>Fueling the pipeline...</div>;
@@ -285,17 +312,74 @@ export default function FundingPage() {
               <h3 className="font-heading text-xl font-semibold">Your Bank Details</h3>
               <p className="text-xs text-text-secondary">Withdrawals are sent to this account. Ensure details are correct to avoid reversal fees.</p>
               
-              <div className="space-y-3">
-                 <div className="grid grid-cols-3 gap-2 text-[10px] items-center">
-                    <span className="text-text-muted uppercase tracking-widest font-semibold">Bank Name</span>
-                    <span className="col-span-2 font-medium">Standard Bank (Retail)</span>
-                 </div>
-                 <div className="grid grid-cols-3 gap-2 text-[10px] items-center">
-                    <span className="text-text-muted uppercase tracking-widest font-semibold">Acc Number</span>
-                    <span className="col-span-2 font-mono">**** 5542</span>
-                 </div>
-                 <button className="text-xs text-candle-green font-bold hover:underline">Update Banking →</button>
-              </div>
+              {isEditingBank ? (
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-text-muted uppercase font-bold">Bank Name</label>
+                    <Input 
+                      value={bankName} 
+                      onChange={(e) => setBankName(e.target.value)}
+                      placeholder="e.g. FNB"
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-text-muted uppercase font-bold">Account Number</label>
+                    <Input 
+                      value={bankAccount} 
+                      onChange={(e) => setBankAccount(e.target.value)}
+                      placeholder="Account Number"
+                      className="h-8 text-xs font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-text-muted uppercase font-bold">Branch Code</label>
+                    <Input 
+                      value={bankBranch} 
+                      onChange={(e) => setBankBranch(e.target.value)}
+                      placeholder="Branch Code"
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      onClick={handleUpdateBanking} 
+                      disabled={updatingBank}
+                      className="h-8 text-xs flex-1"
+                    >
+                      {updatingBank ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button 
+                      onClick={() => setIsEditingBank(false)} 
+                      variant="outline"
+                      className="h-8 text-xs flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                   <div className="grid grid-cols-3 gap-2 text-[10px] items-center">
+                      <span className="text-text-muted uppercase tracking-widest font-semibold">Bank Name</span>
+                      <span className="col-span-2 font-medium">{user?.bank_name || 'Not Set'}</span>
+                   </div>
+                   <div className="grid grid-cols-3 gap-2 text-[10px] items-center">
+                      <span className="text-text-muted uppercase tracking-widest font-semibold">Acc Number</span>
+                      <span className="col-span-2 font-mono">
+                        {user?.bank_account_number 
+                          ? `**** ${user.bank_account_number.slice(-4)}`
+                          : 'Not Set'}
+                      </span>
+                   </div>
+                   <button 
+                    onClick={() => setIsEditingBank(true)}
+                    className="text-xs text-candle-green font-bold hover:underline"
+                   >
+                    Update Banking →
+                   </button>
+                </div>
+              )}
               </div>
            </div>
         </div>

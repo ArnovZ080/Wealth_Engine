@@ -1,16 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Send, Bell, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function SettingsProfilePage() {
   const [chatId, setChatId] = useState("");
   const [isLinking, setIsLinking] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { user, refreshUser } = useAuth();
+  
+  const [prefs, setPrefs] = useState({
+    telegram_alerts_enabled: user?.telegram_alerts_enabled ?? true,
+    ground_zero_alerts_enabled: user?.ground_zero_alerts_enabled ?? true,
+    trade_signals_enabled: user?.trade_signals_enabled ?? true,
+  });
+
+  useEffect(() => {
+    if (user) {
+      setPrefs({
+        telegram_alerts_enabled: user.telegram_alerts_enabled ?? true,
+        ground_zero_alerts_enabled: user.ground_zero_alerts_enabled ?? true,
+        trade_signals_enabled: user.trade_signals_enabled ?? true,
+      });
+    }
+  }, [user]);
+
+  const updatePreference = async (key: keyof typeof prefs, value: boolean) => {
+    const newPrefs = { ...prefs, [key]: value };
+    setPrefs(newPrefs);
+    try {
+      await api.patch("/auth/me/preferences", newPrefs);
+      await refreshUser();
+    } catch (err) {
+      console.error("Failed to update preferences", err);
+      // Revert on error
+      setPrefs(prefs);
+    }
+  };
 
   const handleLinkTelegram = async () => {
     setIsLinking(true);
@@ -91,16 +124,37 @@ export default function SettingsProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
-              <span className="text-sm">Trade Executions (Buy/Sell)</span>
-              <Badge className="bg-candle-green/20 text-candle-green border-none">Active</Badge>
+              <span className="text-sm">Trade Signals & Signals</span>
+              <Button 
+                variant={prefs.trade_signals_enabled ? "default" : "outline"}
+                size="sm"
+                className={cn("h-7 text-[10px] uppercase font-bold", prefs.trade_signals_enabled ? "bg-candle-green/20 text-candle-green hover:bg-candle-green/30" : "")}
+                onClick={() => updatePreference('trade_signals_enabled', !prefs.trade_signals_enabled)}
+              >
+                {prefs.trade_signals_enabled ? "Enabled" : "Disabled"}
+              </Button>
             </div>
             <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
               <span className="text-sm">Ground Zero Warnings</span>
-              <Badge className="bg-candle-red/20 text-candle-red border-none">High Priority</Badge>
+              <Button 
+                variant={prefs.ground_zero_alerts_enabled ? "default" : "outline"}
+                size="sm"
+                className={cn("h-7 text-[10px] uppercase font-bold", prefs.ground_zero_alerts_enabled ? "bg-candle-red/20 text-candle-red hover:bg-candle-red/30" : "")}
+                onClick={() => updatePreference('ground_zero_alerts_enabled', !prefs.ground_zero_alerts_enabled)}
+              >
+                {prefs.ground_zero_alerts_enabled ? "High Priority" : "Off"}
+              </Button>
             </div>
             <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
-              <span className="text-sm">Weekly Strategy Reports</span>
-              <Badge className="bg-white/10 text-text-secondary border border-white/10">Weekly</Badge>
+              <span className="text-sm">Telegram Alerts</span>
+              <Button 
+                variant={prefs.telegram_alerts_enabled ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-[10px] uppercase font-bold"
+                onClick={() => updatePreference('telegram_alerts_enabled', !prefs.telegram_alerts_enabled)}
+              >
+                {prefs.telegram_alerts_enabled ? "On" : "Off"}
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -31,7 +31,10 @@ type AdminUser = {
 
 type Invite = {
   id: string;
+  code: string;
   claimed_by?: string | null;
+  claimed_at?: string | null;
+  created_at: string;
 };
 
 export default function AdminPanel() {
@@ -90,6 +93,11 @@ export default function AdminPanel() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('Copied to clipboard!');
+  };
+
   const handleGenerateInvite = async () => {
     try {
       await api.post('/admin/invites', {});
@@ -141,15 +149,51 @@ export default function AdminPanel() {
 
         <div className="glass rv">
           <div className="gc p-6 space-y-2">
-           <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">Available Invites</p>
+           <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">Invite Management</p>
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                   <Ticket className="text-candle-green" size={20} />
-                  <p className="font-heading text-3xl font-bold">{invites.filter(i => !i.claimed_by).length}</p>
+                  <p className="font-heading text-3xl font-bold">{invites.filter(i => !i.claimed_by).length} Available</p>
               </div>
               <Button onClick={handleGenerateInvite} size="sm">
-                Generate +
+                Generate New
               </Button>
+           </div>
+           
+           <div className="mt-6 space-y-3 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+              {invites.map(i => (
+                <div key={i.id} className={cn(
+                  "flex items-center justify-between p-2 rounded-lg border text-xs",
+                  i.claimed_by ? "bg-white/2 border-white/5 opacity-50" : "bg-white/5 border-white/10"
+                )}>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono font-bold tracking-tight">{i.code}</span>
+                    <span className="text-[9px] text-text-muted">
+                      {i.claimed_by ? `Claimed ${new Date(i.claimed_at!).toLocaleDateString()}` : 'Unclaimed'}
+                    </span>
+                  </div>
+                  {!i.claimed_by && (
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2 text-[9px]"
+                        onClick={() => copyToClipboard(i.code)}
+                      >
+                        Code
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2 text-[9px]"
+                        onClick={() => copyToClipboard(`https://wealth.theaicrucible.com/register?invite=${i.code}`)}
+                      >
+                        Link
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
            </div>
           </div>
         </div>

@@ -13,6 +13,12 @@ export interface User {
   deposit_reference?: string;
   platform_fee_rate: number;
   last_heartbeat: string;
+  bank_name?: string;
+  bank_account_number?: string;
+  bank_branch_code?: string;
+  telegram_alerts_enabled?: boolean;
+  ground_zero_alerts_enabled?: boolean;
+  trade_signals_enabled?: boolean;
 }
 
 export interface UserForestState {
