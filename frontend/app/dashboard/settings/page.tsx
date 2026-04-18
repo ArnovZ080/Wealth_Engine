@@ -68,7 +68,7 @@ export default function SettingsProfilePage() {
                 </Button>
               </div>
               <p className="text-xs text-text-secondary">
-                Message @RecursiveFractalBot to get your Chat ID.
+                Message @ArnoTradeBot to get your Chat ID.
               </p>
             </div>
 

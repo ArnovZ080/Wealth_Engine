@@ -3,7 +3,7 @@
 Welcome to the Recursive Fractal Wealth Engine.
 
 ## 1. Getting Started
-1. **Link Telegram**: Go to **Settings** and enter your Telegram Chat ID. Message `@RecursiveFractalBot` to get your ID. This is required for real-time trade alerts.
+1. **Link Telegram**: Go to **Settings** and enter your Telegram Chat ID. Message `@ArnoTradeBot` to get your ID. This is required for real-time trade alerts.
 2. **Deposit Funds**: Go to **Funding**, note your unique reference (e.g., `WE-ARN1234`), and transfer ZAR to the provided bank details.
 3. **Wait for Confirmation**: Once your deposit hits our bank, the system will automatically credit your account. You'll receive a Telegram notification when this happens.
 
