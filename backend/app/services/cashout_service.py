@@ -32,7 +32,16 @@ class CashOutService:
         res = await session.execute(select(UserForestState).where(UserForestState.user_id == user_id))
         forest = res.scalars().first()
         if not forest:
-            raise ValueError(f"Forest state for user {user_id} not found.")
+            rate = Decimal("19.0")
+            requested_usdt = zar_amount / rate
+            return {
+                "requested_zar": zar_amount,
+                "target_usdt": requested_usdt,
+                "fulfillable_usdt": Decimal("0"),
+                "shortfall_usdt": requested_usdt,
+                "breakdown": [],
+                "warning": "No active seeds to liquidate"
+            }
 
         # For preview, we currently use a "representative" rate to show the breakdown in ZAR.
         # But balances are in USDT. So we convert requested ZAR to USDT first.

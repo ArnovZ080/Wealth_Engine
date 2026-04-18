@@ -227,7 +227,7 @@ export default function DashboardHome() {
               <span>Ground Zero Alert</span>
             </div>
             <p className="text-sm text-text-secondary leading-relaxed">
-              2 seeds are approaching Ground Zero ($85.00 floor). Autonomous liquidation is on standby.
+              2 seeds are approaching Ground Zero (R850 floor). Autonomous liquidation is on standby.
             </p>
             <button className="text-sm font-bold text-candle-red hover:underline">
               Review Seeds →

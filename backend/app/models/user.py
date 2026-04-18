@@ -101,6 +101,9 @@ class User(Base):
     bank_branch_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     telegram_chat_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    telegram_alerts_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("true"), default=True)
+    ground_zero_alerts_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("true"), default=True)
+    trade_signals_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("true"), default=True)
 
     # Relationships
     forest_state = relationship("UserForestState", back_populates="user", uselist=False, cascade="all, delete-orphan")

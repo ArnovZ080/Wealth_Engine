@@ -98,8 +98,40 @@ async def get_me(user: User = Depends(get_current_user)):
         "email": user.email,
         "display_name": user.display_name,
         "role": user.role,
-        "platform_fee_rate": float(user.platform_fee_rate)
+        "platform_fee_rate": float(user.platform_fee_rate),
+        "bank_name": user.bank_name,
+        "bank_account_number": user.bank_account_number,
+        "bank_branch_code": user.bank_branch_code,
+        "telegram_alerts_enabled": user.telegram_alerts_enabled,
+        "ground_zero_alerts_enabled": user.ground_zero_alerts_enabled,
+        "trade_signals_enabled": user.trade_signals_enabled,
     }
+
+class BankingUpdateSchema(BaseModel):
+    bank_name: str
+    bank_account_number: str
+    bank_branch_code: str
+
+@router.patch("/me/banking")
+async def update_banking(data: BankingUpdateSchema, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    user.bank_name = data.bank_name
+    user.bank_account_number = data.bank_account_number
+    user.bank_branch_code = data.bank_branch_code
+    await session.commit()
+    return {"status": "success", "message": "Banking details updated"}
+
+class PreferencesUpdateSchema(BaseModel):
+    telegram_alerts_enabled: bool
+    ground_zero_alerts_enabled: bool
+    trade_signals_enabled: bool
+
+@router.patch("/me/preferences")
+async def update_preferences(data: PreferencesUpdateSchema, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    user.telegram_alerts_enabled = data.telegram_alerts_enabled
+    user.ground_zero_alerts_enabled = data.ground_zero_alerts_enabled
+    user.trade_signals_enabled = data.trade_signals_enabled
+    await session.commit()
+    return {"status": "success", "message": "Preferences updated"}
 
 @router.post("/heartbeat")
 async def user_heartbeat(user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
