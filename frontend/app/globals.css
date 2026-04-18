@@ -1,67 +1,8 @@
-@import "tailwindcss";
-
-@theme {
-  /* Keep shadcn-style CSS vars for compatibility with existing classes */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
-  :root {
-    /* Signature base */
-    --background: #03050a; /* void */
-    --foreground: #edf2f8; /* text-primary */
-    --card: #0d1628;       /* card */
-    --card-foreground: #edf2f8;
-    --popover: #0d1628;
-    --popover-foreground: #edf2f8;
-
-    /* System */
-    --primary: #22c55e; /* candle green */
-    --primary-foreground: #05070d;
-    --secondary: rgba(237, 242, 248, 0.06);
-    --secondary-foreground: #edf2f8;
-    --muted: rgba(176, 191, 206, 0.08);
-    --muted-foreground: #b0bfce;
-    --accent: rgba(34, 197, 94, 0.10);
-    --accent-foreground: #edf2f8;
-    --destructive: #ef4444; /* candle red */
-    --destructive-foreground: #fff1f1;
-
-    --border: rgba(34, 197, 94, 0.15);
-    --input: rgba(237, 242, 248, 0.08);
-    --ring: rgba(34, 197, 94, 0.65);
-
-    --radius: 1rem;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
     background: #03050a;
     color: #edf2f8;
@@ -72,16 +13,8 @@
       radial-gradient(at 90% 10%, rgba(239, 68, 68, 0.06) 0px, transparent 55%),
       linear-gradient(180deg, #03050a 0%, #070b14 60%, #03050a 100%);
   }
-
-  h1,
-  h2,
-  h3,
-  h4 {
+  h1, h2, h3, h4 {
     font-family: var(--font-space-grotesk), sans-serif;
-  }
-
-  :focus-visible {
-    outline: none;
   }
 }
 
