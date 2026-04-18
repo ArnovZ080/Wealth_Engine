@@ -41,7 +41,8 @@ class Settings(BaseSettings):
             password=self.db_password,
             host=self.db_host,
             port=self.db_port,
-            database=self.db_name
+            database=self.db_name,
+            query={"ssl": "disable"}
         )
         return url.render_as_string(hide_password=False)
 
@@ -63,6 +64,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     app_title: str = "Recursive Fractal Wealth Engine"
     app_version: str = "0.1.0"
+    scheduler_enabled: bool = False
 
     # ── AI Agents ───────────────────────────────────────────────────────
     gemini_api_key: Optional[str] = None

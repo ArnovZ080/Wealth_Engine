@@ -16,7 +16,7 @@ from sqlalchemy import engine_from_config, pool
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import Base
-from app.models.global_state import GlobalState  # noqa: F401 — registers model metadata
+from app.models import *  # noqa: F401, F403 — registers all model metadata
 from app.config import get_settings
 
 config = context.config

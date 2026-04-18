@@ -11,7 +11,7 @@ from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
-import google.generativeai as genai
+from google import genai
 
 from app.agents.base import BaseAgent, LLMResponse
 
@@ -39,30 +39,32 @@ class AlphaHunter(BaseAgent):
     """
     def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-1.5-pro"):
         super().__init__("Alpha Hunter")
-        self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
+        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
         self.model_name = model_name
         if self.api_key:
             try:
-                genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel(model_name)
+                self.client = genai.Client(api_key=self.api_key)
             except Exception as e:
                 logger.error("Failed to initialize Gemini model: %s", e)
-                self.model = None
+                self.client = None
         else:
-            self.model = None
+            self.client = None
 
     async def generate_proposal(self, market_data: Dict[str, Any], seed_context: Dict[str, Any]) -> TradeMemo:
         """
         Call Gemini API with market data and seed context.
         """
-        if not self.model:
+        if not self.client:
             logger.warning("No Gemini API key found. Falling back to mock.")
             return self._mock_proposal(market_data, seed_context)
 
         try:
             prompt = self._build_hunter_prompt(market_data, seed_context)
             # Fetch response
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             return self._parse_hunter_response(response.text, market_data, seed_context)
         except Exception as e:
             logger.error("Gemini API call failed: %s. Falling back.", e)
@@ -144,7 +146,10 @@ class AlphaHunter(BaseAgent):
         )
 
     async def invoke(self, prompt: str, context: Optional[Dict[str, Any]] = None) -> Any:
-        if not self.model:
+        if not self.client:
             return "Mock response: Gemini API key missing."
-        response = self.model.generate_content(prompt)
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=prompt
+        )
         return response.text
