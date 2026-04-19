@@ -62,15 +62,15 @@ services:
     image: nginx:alpine
     container_name: fractal_wealth_nginx
     restart: always
+    depends_on:
+      - backend
+      - frontend
     volumes:
       - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./infra/nginx/certs:/etc/nginx/certs:ro
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      - backend
-      - frontend
 
   # Automated Daily Backups
   backup:
