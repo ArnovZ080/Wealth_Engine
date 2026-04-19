@@ -124,20 +124,14 @@ class GlobalStateResponse(BaseModel):
     shared_nursery_balance: Decimal
     vault_tier1_buidl: Decimal
     vault_tier2_etfs: Decimal
-    vault_tier2_capacity: Decimal
-    vault_tier3_real_estate: Decimal
-    last_heartbeat: datetime
+    vault_tier3_realestate: Decimal
     kill_switch_status: str
-    strike_count: int
-    preflight_passed: bool
-    tax_rate: Decimal
-    legacy_heir_wallet: Optional[str]
-    legacy_trust_contract: Optional[str]
-    legacy_triggered: bool
-    boost_log: list = []
+    
+    # Optional metadata from forest state
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
     trees: list = []
-    created_at: datetime
-    updated_at: datetime
     
     # --- Phase 5 Dual Currency fields ---
     usd_zar_rate: Optional[Decimal] = None

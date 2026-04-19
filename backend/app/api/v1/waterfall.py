@@ -22,6 +22,7 @@ from app.services.waterfall import execute_waterfall
 from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.tree import Tree
+from app.models.forest import UserForestState
 from sqlalchemy import select
 
 router = APIRouter()
@@ -88,12 +89,24 @@ async def execute_waterfall_endpoint(
     description="Returns the current snapshot of the Unified Root global state.",
 )
 async def get_state_endpoint(
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
     """Retrieve the current global state."""
     from app.services.forex_service import ForexService
     try:
-        state = await get_global_state(session)
+        # Query per-user state instead of global
+        forest_res = await session.execute(
+            select(UserForestState).where(UserForestState.user_id == current_user.id)
+        )
+        state = forest_res.scalars().first()
+        
+        if not state:
+            # Create a default state if missing (safety)
+            state = UserForestState(user_id=current_user.id)
+            session.add(state)
+            await session.commit()
+            await session.refresh(state)
         
         # Dual currency calculations
         rate = await ForexService.get_usd_to_zar()
@@ -102,7 +115,7 @@ async def get_state_endpoint(
             state.shared_nursery_balance + 
             state.vault_tier1_buidl + 
             state.vault_tier2_etfs + 
-            state.vault_tier3_real_estate
+            state.vault_tier3_realestate
         )
         
         portfolio = {
@@ -110,8 +123,8 @@ async def get_state_endpoint(
             "total_value_zar": (total_usd * rate).quantize(Decimal("1.00")),
             "reservoir_zar": (state.shared_reservoir_balance * rate).quantize(Decimal("1.00")),
             "nursery_zar": (state.shared_nursery_balance * rate).quantize(Decimal("1.00")),
-            "vault_zar": ((state.vault_tier1_buidl + state.vault_tier2_etfs + state.vault_tier3_real_estate) * rate).quantize(Decimal("1.00")),
-            "reinvestment_zar": Decimal("0.00") # Derived dynamically across trees usually, stubbed for now
+            "vault_zar": ((state.vault_tier1_buidl + state.vault_tier2_etfs + state.vault_tier3_realestate) * rate).quantize(Decimal("1.00")),
+            "reinvestment_zar": Decimal("0.00") 
         }
         
         resp = GlobalStateResponse.model_validate(state)
@@ -119,11 +132,14 @@ async def get_state_endpoint(
         from app.schemas import DualCurrencyPortfolio
         resp.portfolio = DualCurrencyPortfolio(**portfolio)
         
-        trees_res = await session.execute(select(Tree))
+        # Only fetch trees for the current user
+        trees_res = await session.execute(
+            select(Tree).where(Tree.user_id == current_user.id)
+        )
         db_trees = trees_res.scalars().all()
         resp.trees = [
             {
-                "id": t.id,
+                "id": str(t.id),
                 "tree_id": t.tree_id,
                 "status": t.status,
                 "active_seeds_count": t.active_seeds_count
