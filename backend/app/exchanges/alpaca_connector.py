@@ -113,7 +113,7 @@ class AlpacaConnector(BaseExchangeConnector):
                 symbol=normalized,
                 qty=float(order.quantity),
                 side=side,
-                time_in_force=TimeInForce.GTC
+                time_in_force=TimeInForce.DAY
             )
         elif order.order_type == OrderType.LIMIT:
             req = LimitOrderRequest(
@@ -121,7 +121,7 @@ class AlpacaConnector(BaseExchangeConnector):
                 qty=float(order.quantity),
                 side=side,
                 limit_price=float(order.limit_price),
-                time_in_force=TimeInForce.GTC
+                time_in_force=TimeInForce.DAY
             )
         else:
             raise ValueError(f"Order type {order.order_type} not supported in Alpaca.")

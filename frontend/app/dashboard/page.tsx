@@ -15,6 +15,7 @@ import {
   Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 type SchedulerStatus = {
   running?: boolean;
@@ -31,11 +32,15 @@ type ForestPortfolio = {
 type ForestStateWithPortfolio = UserForestState & {
   usd_zar_rate?: number;
   portfolio?: ForestPortfolio;
+  trees?: { id: string; status: string; active_seeds_count: number; seed_count: number }[];
 };
 
 export default function DashboardHome() {
   const { user } = useAuth();
   const [forest, setForest] = useState<ForestStateWithPortfolio | null>(null);
+  const groundZeroSeeds = (forest?.trees || []).reduce((acc: number, tree: { active_seeds_count: number; seed_count: number }) => acc + (tree.active_seeds_count || tree.seed_count || 0), 0) > 0
+    ? (forest?.trees || []).filter((t: { status: string }) => t.status === 'ground_zero').length
+    : 0;
   const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -220,6 +225,7 @@ export default function DashboardHome() {
 
         {/* Quick Help / Alerts */}
         <div className="space-y-6">
+          {groundZeroSeeds > 0 && (
           <div className="glass-red rv">
             <div className="gc p-6 space-y-4">
             <div className="flex items-center gap-2 text-candle-red font-bold">
@@ -227,28 +233,29 @@ export default function DashboardHome() {
               <span>Ground Zero Alert</span>
             </div>
             <p className="text-sm text-text-secondary leading-relaxed">
-              2 seeds are approaching Ground Zero (R850 floor). Autonomous liquidation is on standby.
+              {groundZeroSeeds} seed{groundZeroSeeds > 1 ? 's are' : ' is'} approaching Ground Zero (R850 floor). Autonomous liquidation is on standby.
             </p>
-            <button className="text-sm font-bold text-candle-red hover:underline">
+            <Link href="/dashboard/forest" className="text-sm font-bold text-candle-red hover:underline">
               Review Seeds →
-            </button>
+            </Link>
             </div>
           </div>
+          )}
 
           <div className="glass rv">
             <div className="gc p-6 space-y-4">
             <h3 className="font-heading text-xl font-semibold">Next Milestone</h3>
             <div className="flex items-center gap-4">
               <div className="flex-1 space-y-1">
-                <p className="text-sm text-text-secondary">Level 2 Unlock</p>
+                <p className="text-sm text-text-secondary">Vault Tier 2 — ETF Allocation</p>
                 <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
-                   <div className="h-full bg-candle-green" style={{ width: '65%' }} />
+                   <div className="h-full bg-candle-green" style={{ width: `${Math.min(100, ((forest?.vault_tier2_etfs || 0) / 50000) * 100).toFixed(1)}%` }} />
                 </div>
               </div>
-              <span className="font-bold">65%</span>
+              <span className="font-bold">{Math.min(100, ((forest?.vault_tier2_etfs || 0) / 50000) * 100).toFixed(1)}%</span>
             </div>
             <p className="text-xs text-text-secondary">
-              Profit needed for Tier 2 Auto-allocation: $1,420
+              Vault Tier 2 capacity: ${Number(forest?.vault_tier2_etfs || 0).toFixed(2)} / $50,000
             </p>
             </div>
           </div>

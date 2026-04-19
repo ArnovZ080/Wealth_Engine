@@ -30,7 +30,7 @@ DEFAULT_WATCHLISTS = {
     "binance": [
         "BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT",
         "XRP/USDT", "ADA/USDT", "DOGE/USDT", "AVAX/USDT",
-        "DOT/USDT", "LINK/USDT", "MATIC/USDT", "ATOM/USDT",
+        "DOT/USDT", "LINK/USDT", "POL/USDT", "ATOM/USDT",
         "UNI/USDT", "LTC/USDT", "NEAR/USDT"
     ],
     "alpaca": [

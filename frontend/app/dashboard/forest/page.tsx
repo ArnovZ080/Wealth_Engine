@@ -16,6 +16,7 @@ export default function ForestPage() {
     async function fetchTrees() {
       try {
         const data = await api.get<Tree[]>('/trees');
+        console.log('ForestPage: Received raw trees data:', data);
         setTrees(data);
       } catch (err) {
         console.error('Failed to fetch trees', err);
@@ -58,79 +59,75 @@ export default function ForestPage() {
             )}
           >
             <div className="gc p-6">
-            <div className={cn(
-               "absolute top-0 right-0 w-16 h-16 opacity-5 pointer-events-none transition-transform group-hover:scale-110",
-               tree.is_active ? "text-candle-green" : "text-candle-red"
-            )}>
-               <Sprout size={64} />
-            </div>
-
-            <div className="flex justify-between items-start mb-4">
-              <div className="space-y-1">
-                <h3 className="font-heading font-semibold text-xl">{tree.name}</h3>
-                <span className={cn(
-                  "inline-flex items-center px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider",
-                  tree.is_active ? "bg-candle-green/10 text-candle-green" : "bg-candle-red/10 text-candle-red"
-                )}>
-                  {tree.is_active ? 'Active' : 'Paused' }
-                </span>
+              <div className={cn(
+                "absolute top-0 right-0 w-16 h-16 opacity-5 pointer-events-none transition-transform group-hover:scale-110",
+                tree.is_active ? "text-candle-green" : "text-candle-red"
+              )}>
+                <Sprout size={64} />
               </div>
-              <div className="flex gap-1">
-                 <button className="p-2 hover:bg-white/5 rounded-md text-text-muted hover:text-text-primary">
+              <div className="flex justify-between items-start mb-4">
+                <div className="space-y-1">
+                  <h3 className="font-heading font-semibold text-xl">{tree.name}</h3>
+                  <span className={cn(
+                    "inline-flex items-center px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider",
+                    tree.is_active ? "bg-candle-green/10 text-candle-green" : "bg-candle-red/10 text-candle-red"
+                  )}>
+                    {tree.is_active ? 'Active' : 'Paused'}
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <button className="p-2 hover:bg-white/5 rounded-md text-text-muted hover:text-text-primary">
                     {tree.is_active ? <Pause size={16} /> : <Play size={16} />}
-                 </button>
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">Seeds</p>
-                <p className="font-heading font-bold text-lg">{tree.seed_count} / 100</p>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">Seeds</p>
+                  <p className="font-heading font-bold text-lg">{tree.seed_count} / 100</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">30D ROI</p>
+                  <p className={cn(
+                    "font-heading font-bold text-lg",
+                    (tree.performance_30d || 0) >= 0 ? "text-candle-green" : "text-candle-red"
+                  )}>
+                    {formatPercent(tree.performance_30d || 0)}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-widest text-text-muted font-semibold">30D ROI</p>
-                <p className={cn(
-                  "font-heading font-bold text-lg",
-                  (tree.performance_30d || 0) >= 0 ? "text-candle-green" : "text-candle-red"
-                )}>
-                  {formatPercent(tree.performance_30d || 0)}
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-border flex justify-between items-center">
-               <div className="flex items-center gap-2 text-text-secondary">
+              <div className="pt-4 border-t border-border flex justify-between items-center">
+                <div className="flex items-center gap-2 text-text-secondary">
                   <BarChart3 size={14} />
                   <span className="text-xs font-medium">Aggressive-Beta Strategy</span>
-               </div>
-               <Link 
-                href={`/dashboard/forest/${tree.id}`}
-                className="text-candle-green hover:underline text-sm font-bold flex items-center gap-1"
-               >
-                 Inspect Tree
-                 <ChevronRight size={14} />
-               </Link>
-            </div>
+                </div>
+                <Link
+                  href={`/dashboard/forest/${tree.id}`}
+                  className="text-candle-green hover:underline text-sm font-bold flex items-center gap-1"
+                >
+                  Inspect Tree
+                  <ChevronRight size={14} />
+                </Link>
+              </div>
             </div>
           </div>
         ))}
 
-        {/* Placeholder for planting new trees */}
         {trees.length === 0 && (
           <div className="col-span-full glass rv">
             <div className="gc p-12 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-text-muted">
-               <Sprout size={32} />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-heading font-semibold text-xl">The soil is ready</h3>
-              <p className="text-text-secondary max-w-sm">
-                You haven&apos;t planted any trees yet. Deposit ZAR to start allocating capital to autonomous trading strategies.
-              </p>
-            </div>
-            <Link href="/dashboard/funding">
-              <Button>Get Started</Button>
-            </Link>
+              <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-text-muted">
+                <Sprout size={32} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-heading font-semibold text-xl">The soil is ready</h3>
+                <p className="text-text-secondary max-w-sm">
+                  No active trees yet. Your first tree will be planted when the nursery threshold is reached (ZAR 1,000).
+                </p>
+              </div>
+              <Link href="/dashboard/funding">
+                <Button>Get Started</Button>
+              </Link>
             </div>
           </div>
         )}

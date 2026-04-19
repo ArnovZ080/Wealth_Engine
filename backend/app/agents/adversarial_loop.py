@@ -5,6 +5,7 @@ Coordinates Gemini 3.1 and Claude 4.6 Opus in a multi-round refinement loop.
 """
 
 import logging
+import json
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from decimal import Decimal
@@ -97,8 +98,8 @@ async def run_adversarial_loop(
         shadow_flaws=verdict.flaws_found,
         refinement_rounds=round_num,
         execution_authorized=execution_authorized,
-        trade_memo=current_memo.model_dump(),
-        adversarial_log={"rounds": adversarial_log}
+        trade_memo=json.loads(json.dumps({**current_memo.model_dump(), 'exchange': market_data.get('exchange', 'alpaca')}, default=str)),
+        adversarial_log=json.loads(json.dumps({"rounds": adversarial_log}, default=str))
     )
     session.add(decision_record)
     

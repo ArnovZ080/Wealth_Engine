@@ -37,7 +37,7 @@ class AlphaHunter(BaseAgent):
     """
     Gemini Implementation. (Instruction specifies Gemini 3.1 Pro, using gemini-1.5-pro as stable target)
     """
-    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-1.5-pro"):
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-2.0-flash"):
         super().__init__("Alpha Hunter")
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
         self.model_name = model_name

@@ -29,7 +29,7 @@ class ForexService:
         # Proceed to fetch from API
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get("https://api.frankfurter.app/latest?from=USD&to=ZAR")
+                response = await client.get("https://api.frankfurter.dev/v1/latest?from=USD&to=ZAR")
                 response.raise_for_status()
                 data = response.json()
                 rate = Decimal(str(data["rates"]["ZAR"]))

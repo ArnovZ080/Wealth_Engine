@@ -58,13 +58,13 @@ class Seed(Base):
 
     current_value: Mapped[Decimal] = mapped_column(
         Numeric(20, 8),
-        default=Decimal("100.00000000"),
+        default=Decimal("54.00000000"),
         nullable=False,
     )
 
     initial_value: Mapped[Decimal] = mapped_column(
         Numeric(20, 8),
-        default=Decimal("100.00000000"),
+        default=Decimal("54.00000000"),
         nullable=False,
     )
 
@@ -97,7 +97,7 @@ class Seed(Base):
 
     stop_loss_floor: Mapped[Decimal] = mapped_column(
         Numeric(20, 8),
-        default=Decimal("85.00000000"),
+        default=Decimal("46.00000000"),
         nullable=False,
     )
 

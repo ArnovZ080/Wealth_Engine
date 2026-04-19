@@ -94,8 +94,8 @@ class GlobalState(Base):
     vault_tier2_capacity: Mapped[float] = mapped_column(
         Numeric(20, 8),
         nullable=False,
-        default=50000,
-        server_default=text("50000"),
+        default=500000,
+        server_default=text("500000"),
     )
 
     # Tier 3: Tokenized Real Estate (RealT / Centrifuge) — overflow from Tier 2

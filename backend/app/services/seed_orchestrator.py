@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User, UserRole
 from app.models.seed import Seed, SeedStatus
 from app.models.tree import Tree, TreeStatus
+from app.models.forest import UserForestState
 from app.services.trade_pipeline import TradePipeline
 from app.services.indicator_service import IndicatorService
 from app.exchanges.connector_factory import ConnectorFactory
@@ -75,13 +76,68 @@ class SeedOrchestrator:
                 summary["details"].append(f"Seed {seed.seed_id}: ERROR {str(e)}")
 
         # 3. Post-cycle Logic: Nursery Planting & Genetic Pruning
-        # These are existing Phase 2/3A logic points we keep stubs for
-        # nursery_balance check -> create new seed if >= $100
-        # ROI check -> prune weakest seed
-        
+        # Nursery threshold check — plant new seeds if balance >= ZAR 1,000
+        await self._check_and_plant_nursery_seeds(user_id, session)
+
         await session.commit()
         logger.info("Cycle complete for user %s: %s", user_id, summary)
         return summary
+
+    async def _check_and_plant_nursery_seeds(self, user_id, session: AsyncSession):
+        """Plant new seeds from nursery balance when ZAR 1,000 threshold is reached."""
+        try:
+            from app.services.forex_service import ForexService
+            from decimal import Decimal
+            from datetime import datetime
+            forex = ForexService()
+            usd_zar_rate = await forex.get_usd_to_zar()
+            seed_cost_usd = Decimal("1000") / usd_zar_rate
+            stop_loss_usd = Decimal("850") / usd_zar_rate
+
+            forest_result = await session.execute(
+                select(UserForestState).where(UserForestState.user_id == user_id)
+            )
+            forest_state = forest_result.scalar_one_or_none()
+            if not forest_state:
+                return
+
+            seeds_planted = 0
+            while forest_state.shared_nursery_balance >= seed_cost_usd:
+                tree_result = await session.execute(
+                    select(Tree).where(Tree.user_id == user_id, Tree.status == "active")
+                )
+                tree = tree_result.scalars().first()
+                if not tree:
+                    tree = Tree(
+                        tree_id=f"TREE-{str(user_id)[:8]}-{int(datetime.utcnow().timestamp())}",
+                        user_id=user_id,
+                        status="active",
+                        active_seeds_count=0,
+                        max_seeds=100,
+                        preflight_passed=True,
+                    )
+                    session.add(tree)
+                    await session.flush()
+
+                import uuid as _uuid
+                seed = Seed(
+                    seed_id=f"SEED-{str(_uuid.uuid4())[:8].upper()}",
+                    tree_id=tree.id,
+                    initial_value=seed_cost_usd,
+                    current_value=seed_cost_usd,
+                    stop_loss_floor=stop_loss_usd,
+                    status="active",
+                )
+                session.add(seed)
+                tree.active_seeds_count += 1
+                forest_state.shared_nursery_balance -= seed_cost_usd
+                seeds_planted += 1
+                await session.flush()
+
+            if seeds_planted > 0:
+                logger.info("Planted %d new seeds for user %s", seeds_planted, user_id)
+        except Exception as e:
+            logger.error("Error planting nursery seeds: %s", e)
 
     async def run_all_users(self, session: AsyncSession) -> Dict[str, Any]:
         """

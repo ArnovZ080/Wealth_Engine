@@ -41,3 +41,5 @@ htmlcov/
 
 # Alembic
 *.pyc
+infra/nginx/certs/*.pem
+infra/postgres/backups/*.sql

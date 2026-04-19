@@ -61,7 +61,7 @@ class TradePipeline:
 
         # 2. Exchange Selection
         # Stage 1 (<$1k): Crypto focus. Stage 2+: Mixed.
-        exchange_preference = "binance" if seed.current_value < 1000 else None
+        exchange_preference = "alpaca"
         connectors = await self.connector_factory.get_all_connectors(self.user_id, self.session)
         if not connectors:
             logger.error("No exchange connectors found for user %s", self.user_id)
@@ -117,7 +117,8 @@ class TradePipeline:
         
         # Use indicator confidence + LLM confidence average? 
         # Instruction says: "Use the TradeMemo's entry, target, stop_loss, and the indicator service's confidence score."
-        confidence = opportunity.confidence 
+        # Use decision confidence (0-100 scale) converted to 0-1
+        confidence = float(decision.confidence_score) / 100.0 if decision.confidence_score else float(opportunity.confidence) 
         
         position_value = KellyPositionSizer.calculate(
             seed_value=seed.current_value,

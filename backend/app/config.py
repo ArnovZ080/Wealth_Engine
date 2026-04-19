@@ -91,7 +91,7 @@ class Settings(BaseSettings):
 
     # ── Defaults ────────────────────────────────────────────────────────
     default_tax_rate: Decimal = Decimal("0.30")
-    default_tier2_capacity: Decimal = Decimal("50000.00000000")
+    default_tier2_capacity: Decimal = Decimal("500000.00000000")
     default_seed_value: Decimal = Decimal("1000.00000000")
     default_stop_loss_floor: Decimal = Decimal("850.00000000")
     nursery_seed_threshold: Decimal = Decimal("1000.00000000")
