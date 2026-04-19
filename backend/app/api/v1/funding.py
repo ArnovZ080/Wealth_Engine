@@ -17,6 +17,11 @@ from app.services.cashout_service import CashOutService
 class WithdrawalRequest(BaseModel):
     zar_amount: Decimal
 
+class DepositConfirmationRequest(BaseModel):
+    user_id: str
+    zar_amount: Decimal
+    bank_reference: str = None
+
 router = APIRouter(prefix="/funding", tags=["funding"])
 
 @router.get("/deposit-instructions", response_model=Dict[str, Any])
@@ -61,9 +66,7 @@ async def get_transactions(
 
 @router.post("/deposits/confirm", response_model=Dict[str, Any])
 async def confirm_deposit(
-    user_id: str,
-    zar_amount: Decimal,
-    bank_reference: str = None,
+    data: DepositConfirmationRequest,
     master_user: User = Depends(get_master_user),
     session: AsyncSession = Depends(get_db)
 ):
@@ -72,7 +75,7 @@ async def confirm_deposit(
     """
     service = FundingService()
     try:
-        tx = await service.confirm_deposit(session, user_id, zar_amount, bank_reference)
+        tx = await service.confirm_deposit(session, data.user_id, data.zar_amount, data.bank_reference)
         return {"success": True, "transaction_id": tx.id, "amount_usdt": float(tx.usd_amount)}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
