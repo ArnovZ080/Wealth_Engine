@@ -38,7 +38,7 @@ class KellyPositionSizer:
         risk = entry_price - stop_loss
         
         # Guard against zero or negative risk (would be infinity or invalid trade)
-        if risk <= 0:
+        if risk <= 0 or risk != risk:  # zero, negative or NaN
             return Decimal("0")
         
         if reward <= 0:
